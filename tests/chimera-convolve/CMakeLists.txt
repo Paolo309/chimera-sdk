@@ -9,4 +9,3 @@ add_subdirectory(host)
 
 # Add test for snitchCluster
 add_subdirectory(snitchCluster)
-
