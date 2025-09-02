@@ -12,7 +12,7 @@ set(CROSS_C_COMPILER "${CMAKE_C_COMPILER}")
 set(CROSS_C_COMPILER_ARGS "-target ${CROSS_COMPILE_HOST} -march=${ISA_HOST} -nostdlib" CACHE STRING "Compiler arguments (Host)")
 # VIVIANEP: These flags are only for building Picolibc; adding them globally breaks
 #           app builds (e.g., missing <sys/types.h>) or causes issues in freestanding mode.
-set(CROSS_C_ARGS "-Werror=double-promotion -Wno-unsupported-floating-point-opt -fshort-enums ${CMAKE_ALT_C_OPTIONS} -march=${ISA_HOST} -mabi=${ABI}")
+set(CROSS_C_ARGS "-ggdb -gdwarf-4 -gstrict-dwarf -Werror=double-promotion -Wno-unsupported-floating-point-opt -fshort-enums ${CMAKE_ALT_C_OPTIONS} -march=${ISA_HOST} -mabi=${ABI}")
 set(CROSS_C_LINK_ARGS "-Wl,-z,noexecstack -march=${ISA_HOST} -mabi=${ABI}")
 
 set(CROSS_AR "${CMAKE_AR}")

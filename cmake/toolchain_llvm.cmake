@@ -58,6 +58,8 @@ endif()
 set(CROSS_COMPILE_HOST "riscv32-unknown-elf")
 add_compile_options("--target=${CROSS_COMPILE_HOST}")
 
+add_compile_options(-ggdb -gdwarf-4 -gstrict-dwarf)
+
 # ————————————————————————————————————————————————————————————————
 # Ensure we pull in real 64-bit div/mod helpers on 32-bit RISC-V hosts
 # ————————————————————————————————————————————————————————————————
