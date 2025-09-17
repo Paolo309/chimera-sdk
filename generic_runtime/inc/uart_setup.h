@@ -11,6 +11,6 @@
 
 void _uart_init(void);
 void _uart_deinit(void);
-char uart_putc(char c, FILE *file);
+int uart_putc(char c, FILE *file);
 
 #endif // UART_SETUP_H

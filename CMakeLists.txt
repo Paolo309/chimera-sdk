@@ -8,7 +8,7 @@
 
 cmake_minimum_required(VERSION 3.24)
 
-# VIVIANEP: We need the C11 standard (or later) for building 
+# VIVIANEP: We need the C11 standard (or later) for building
 #           the OpenTitan peripheral drivers
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -17,7 +17,7 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_COMPILER_WORKS 1)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
-set(CMAKE_VERBOSE_MAKEFILE TRUE)
+# set(CMAKE_VERBOSE_MAKEFILE TRUE)
 
 # WIESEP: It is important to set the ISA and ABI for the host and the cluster snitch
 set(ABI ilp32)

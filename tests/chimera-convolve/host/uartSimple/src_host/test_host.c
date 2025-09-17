@@ -4,18 +4,40 @@
 //
 // Viviane Potocnik <vivianep@iis.ee.ethz.ch>
 
-#include "params.h"
-#include "clint.h"
-#include "common.h"
-#include "uart.h"
-#include "util.h"
-#include "regs/cheshire.h"
-#include "regs/soc_ctrl.h"
-
+// Include Standard Libraries
 #include <stdio.h>
 #include <string.h>
 
+// Include Application Headers
+#include "common.h"
+
+// Include Target Specific Headers
+#include "soc.h"
+
+// Include Driver Headers
+#include "driver.h"
+
+// Include Runtime Headers
+#include "util.h"
+#include "bitfield.h"
+
+// Import HAL Headers
+#include "clint.h"
+#include "uart.h"
+
+void setGPIO0_UART() {
+    // Connect UART port to GPIO 0 Pad
+    chimera_padframe_aon_gpio_0_mux_set(CHIMERA_PADFRAME_AON_GPIO_0_group_UART0_port_TX);
+
+    // Set GPIO 0 regs to transmit
+    chimera_padframe_aon_gpio_0_cfg_rxe_set(0);  // Disable Pad's Receiver
+    chimera_padframe_aon_gpio_0_cfg_trie_set(0); // Disable the tri-state transmitter
+}
+
 int main(void) {
+    // Connect UART to GPIO 0
+    setGPIO0_UART();
+
     // 1. Configure the UART from defaults
     uart_config_t uart_cfg = default_cfg;
 
@@ -23,7 +45,7 @@ int main(void) {
     uint32_t rtc_freq = *reg32(&__base_regs, CHESHIRE_RTC_FREQ_REG_OFFSET);
 
     // 3. Calculate the desired core frequency from the RTC frequency
-    uint32_t reset_freq = clint_get_core_freq(rtc_freq, 2500);
+    uint32_t reset_freq = clint_get_core_freq(rtc_freq, 512);
 
     // 4. Update the UART config with the calculated frequency
     uart_cfg.clk_freq_hz = reset_freq;

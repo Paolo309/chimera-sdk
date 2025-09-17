@@ -11,7 +11,7 @@
 
 chi_interface_t uart_iface;
 
-char uart_putc(char c, FILE *file) {
+int uart_putc(char c, FILE *file) {
     (void)file;
     uart_write(&uart_iface, &c, 1, NULL);
     return c;

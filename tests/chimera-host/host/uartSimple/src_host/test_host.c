@@ -22,7 +22,7 @@ int main(void) {
     uint32_t rtc_freq = *reg32(&__base_regs, CHESHIRE_RTC_FREQ_REG_OFFSET);
 
     // 3. Calculate the desired core frequency from the RTC frequency
-    uint32_t reset_freq = clint_get_core_freq(rtc_freq, 2500);
+    uint32_t reset_freq = clint_get_core_freq(rtc_freq, 512);
 
     // 4. Update the UART config with the calculated frequency
     uart_cfg.clk_freq_hz = reset_freq;

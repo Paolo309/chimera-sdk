@@ -4,23 +4,6 @@
 // Authors: Nicole Narr, Christopher Reinwardt,
 //          Paul Scheffler, Viviane Potocnik
 
-/**
- * @defgroup targets_chimera_host Chimera-Host Target
- * @brief Target-specific definitions and interfaces for Chimera-Host.
- * @{
- */
-
-/**
- * @defgroup targets_chimera_host_util Utility Functions and Macros
- * @ingroup targets_chimera_host
- * @brief Utility functions and macros for Chimera-Host.
- *
- * This file provides helper functions for register access, memory fencing,
- * interrupts, cycle counters, and general-purpose macros.
- *
- * @{
- *
- */
 
 #pragma once
 
@@ -231,5 +214,3 @@ static inline void *gprw(void *gp) {
 
 /** @} */
 
-/** @} */ // End of targets_chimera_host_util group
-/** @} */ // End of targets_chimera_host group

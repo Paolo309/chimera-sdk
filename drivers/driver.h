@@ -12,4 +12,7 @@
 #include "cluster/offload_snitchCluster.h"
 #endif
 
+#ifdef CHIMERA_DRIVER_FLL
+#include "fll/fll.h"
+#endif
 #endif //_DRIVER_INCLUDE_GUARD_

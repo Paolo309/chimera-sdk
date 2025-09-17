@@ -24,7 +24,7 @@ set(CMAKE_STRIP ${TOOLCHAIN_DIR}/bin/${LLVM_TAG}-strip)
 set(CMAKE_C_ABI_COMPILED "False")
 
 # Enable WHOLE_ARCHIVE feature
-set(CMAKE_LINK_LIBRARY_USING_WHOLE_ARCHIVE 
+set(CMAKE_LINK_LIBRARY_USING_WHOLE_ARCHIVE
 "-Wl,--whole-archive <LIBRARY> -Wl,--no-whole-archive"
 )
 set(CMAKE_LINK_LIBRARY_USING_WHOLE_ARCHIVE_SUPPORTED True)
@@ -52,6 +52,7 @@ if (LLVM_VERSION_MAJOR LESS 16)
     # WIESEP: Disable linker relaxation for LLVM 12
     add_compile_options("${CMAKE_ALT_C_OPTIONS}")
     add_link_options("${CMAKE_ALT_LINK_OPTIONS}")
+    add_link_options("-Wno-unused-command-line-argument")
 endif()
 
 # Define global flags

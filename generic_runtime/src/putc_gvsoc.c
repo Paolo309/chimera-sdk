@@ -9,7 +9,7 @@
 
 #include "uart_setup.h"
 
-char uart_putc(char c, FILE *file) {
+int uart_putc(char c, FILE *file) {
     (void)file;
     *(volatile uint32_t *)(long)(0x03004000) = c;
     return c;

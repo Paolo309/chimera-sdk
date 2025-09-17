@@ -6,6 +6,7 @@
 
 #include "uart.h"
 #include "uart_setup.h"
+#include "clint.h"
 
 #include "util.h"
 #include "params.h"
@@ -16,7 +17,7 @@ void _uart_init(void) {
     uart_cfg = default_cfg;
 
     uint32_t rtc_freq = *reg32(&__base_regs, CHESHIRE_RTC_FREQ_REG_OFFSET);
-    uint32_t reset_freq = clint_get_core_freq(rtc_freq, 2500);
+    uint32_t reset_freq = clint_get_core_freq(rtc_freq, 512);
     uart_cfg.clk_freq_hz = reset_freq;
 
     uart_iface.base = (uintptr_t)&__base_uart;

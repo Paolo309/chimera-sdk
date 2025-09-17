@@ -4,9 +4,9 @@
 #
 # Victor Jung <jungvi@iis.ee.ethz.ch>
 
+
 target_include_directories(runtime_host
-  PRIVATE 
-    ${PROJECT_SOURCE_DIR}/hal/inc
+  PUBLIC
     ${PROJECT_SOURCE_DIR}/generic_runtime/inc
 )
 
