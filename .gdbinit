@@ -9,17 +9,19 @@ set remotetimeout 120
 set architecture riscv:rv32
 
 # ---- Helpers ----
-define oc-host
-  target extended-remote 127.0.0.1:3333
+define oc
+  target extended-remote localhost:3333
   monitor reset halt
   echo Connected and halted.\n
 end
 
-define oc-docker
-  target extended-remote host.docker.internal:3333
-  monitor reset halt
-  echo Connected and halted.\n
+define restart
+  # Set program counter to _start and continue
+  set $pc = _start
+  continue
 end
 
+echo \n[GDB] Use: oc \n
+echo Available Shortcuts:\n
 
-echo \n[GDB] Use: oc-host | oc-docker \n\n
+\n\n

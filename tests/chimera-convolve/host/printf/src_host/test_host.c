@@ -4,11 +4,36 @@
 //
 // Victor Jung <jungvi@iis.ee.ethz.ch>
 
+// Include Standard Libraries
+#include <stdio.h>
+#include <string.h>
+
+// Include Target Specific Headers
+#include "soc.h"
+
+// Include Driver Headers
+#include "driver.h"
+
+// Include Runtime Headers
+#include "util.h"
+#include "bitfield.h"
+
+// Import HAL Headers
+#include "clint.h"
 #include "uart.h"
 
-#include <stdio.h>
+void setGPIO0_UART() {
+    // Connect UART port to GPIO 0 Pad
+    chimera_padframe_aon_gpio_0_mux_set(CHIMERA_PADFRAME_AON_GPIO_0_group_UART0_port_TX);
+
+    // Set GPIO 0 regs to transmit
+    chimera_padframe_aon_gpio_0_cfg_rxe_set(0);  // Disable Pad's Receiver
+    chimera_padframe_aon_gpio_0_cfg_trie_set(0); // Disable the tri-state transmitter
+}
 
 int main(void) {
+    // Connect UART to GPIO 0
+    setGPIO0_UART();
 
     volatile int a = 42;
     printf("Chimera is alive! %d\n", a);
