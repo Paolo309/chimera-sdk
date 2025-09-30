@@ -11,14 +11,14 @@ target_include_directories(runtime_host
 )
 
 if(SIMULATION_BACKEND STREQUAL "RTL")
-  message(STATUS "Using RTL UART backend")
+  message(STATUS "[CHIMERA-SDK] Using RTL UART backend")
   target_sources(runtime_host PRIVATE
   src/putc_rtl.c
   src/uart_init_rtl.c
   src/uart_deinit_rtl.c
   )
 elseif(SIMULATION_BACKEND STREQUAL "GVSoC")
-  message(STATUS "Using GVSOC UART backend")
+  message(STATUS "[CHIMERA-SDK] Using GVSOC UART backend")
   target_sources(runtime_host PRIVATE
   src/putc_gvsoc.c
   src/uart_init_gvsoc.c

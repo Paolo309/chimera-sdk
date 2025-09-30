@@ -102,7 +102,7 @@ endif()
 
 if(error_messages)
   list(JOIN error_messages "\n" error_message)
-  message(FATAL_ERROR "${error_message}")
+  message(FATAL_ERROR "[CHIMERA-SDK] ${error_message}")
 endif()
 
 set(SOC_MODEL_BINARY "chim.bin" CACHE STRING "Path to the simulation binary")
@@ -116,7 +116,7 @@ if (TEST_MODE STREQUAL "simulation")
   enable_testing()
 
   if(NOT EXISTS ${SOC_MODEL_BINARY})
-    message(FATAL_ERROR "SoC model binary ${SOC_MODEL_BINARY} does not exist.")
+    message(FATAL_ERROR "[CHIMERA-SDK] SoC model binary ${SOC_MODEL_BINARY} does not exist.")
   endif()
 
   # Convert PRELOAD_MODE to integer

@@ -40,7 +40,7 @@ if(NOT EXISTS "${OPENTITAN_DIR}/.git")
     ERROR_VARIABLE GIT_CLONE_ERROR
   )
   if(NOT GIT_CLONE_RESULT EQUAL 0)
-    message(FATAL_ERROR "Failed to clone OpenTitan repository: ${GIT_CLONE_ERROR}")
+    message(FATAL_ERROR "[CHIMERA-SDK] Failed to clone OpenTitan repository: ${GIT_CLONE_ERROR}")
   endif()
 else()
   message(STATUS "[CHIMERA-SDK] OpenTitan repository already exists at ${OPENTITAN_DIR}")
@@ -56,7 +56,7 @@ execute_process(
 )
 
 if(NOT GIT_CONFIG_RESULT EQUAL 0)
-  message(FATAL_ERROR "Failed to configure sparse checkout: ${GIT_CONFIG_OUTPUT}")
+  message(FATAL_ERROR "[CHIMERA-SDK] Failed to configure sparse checkout: ${GIT_CONFIG_OUTPUT}")
 endif()
 
 file(COPY "${SPARSE_CHECKOUT_FILE}" DESTINATION "${OPENTITAN_DIR}/.git/info")
@@ -71,7 +71,7 @@ execute_process(
 )
 
 if(NOT GIT_READ_TREE_RESULT EQUAL 0)
-  message(FATAL_ERROR "Failed to apply sparse checkout: ${GIT_READ_TREE_OUTPUT}")
+  message(FATAL_ERROR "[CHIMERA-SDK] Failed to apply sparse checkout: ${GIT_READ_TREE_OUTPUT}")
 endif()
 
 # ------------------------------------------------------------------------------
