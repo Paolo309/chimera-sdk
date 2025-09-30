@@ -123,17 +123,6 @@ ssize_t uart_opentitan_write(chi_interface_t *iface, const void *buffer, uint32_
 // to avoid duplicated defintion errors in the generated documentation
 
 /// @cond DOXYGEN_SHOULD_SKIP_THIS
-extern int uart_open(chi_interface_t *iface)
-    __attribute__((alias("uart_opentitan_open"), used, visibility("default")));
-extern int uart_close(chi_interface_t *iface)
-    __attribute__((alias("uart_opentitan_close"), used, visibility("default")));
-extern ssize_t uart_read(chi_interface_t *iface, void *buffer, uint32_t size,
-                         chi_interface_callback_t cb)
-    __attribute__((alias("uart_opentitan_read"), used, visibility("default")));
-extern ssize_t uart_write(chi_interface_t *iface, const void *buffer, uint32_t size,
-                          chi_interface_callback_t cb)
-    __attribute__((alias("uart_opentitan_write"), used, visibility("default")));
-
 chi_interface_api_t uart_api = {.open = uart_opentitan_open,
                                 .close = uart_opentitan_close,
                                 .read = uart_opentitan_read,

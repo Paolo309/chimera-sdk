@@ -58,7 +58,7 @@ int uart_apb_open(chi_interface_t *iface) {
 
     // Use default config if none provided
     if (!iface->cfg) {
-        iface->cfg = &default_cfg;
+        iface->cfg = (void *)&default_cfg;
     }
 
     uart_config_t *cfg = (uart_config_t *)iface->cfg;
@@ -175,17 +175,6 @@ ssize_t uart_apb_write(chi_interface_t *iface, const void *buffer, uint32_t size
 // to avoid duplicated defintion errors in the generated documentation
 
 /// @cond DOXYGEN_SHOULD_SKIP_THIS
-extern int uart_open(chi_interface_t *iface)
-    __attribute__((alias("uart_apb_open"), used, visibility("default")));
-extern int uart_close(chi_interface_t *iface)
-    __attribute__((alias("uart_apb_close"), used, visibility("default")));
-extern ssize_t uart_read(chi_interface_t *iface, void *buffer, uint32_t size,
-                         chi_interface_callback_t cb)
-    __attribute__((alias("uart_apb_read"), used, visibility("default")));
-extern ssize_t uart_write(chi_interface_t *iface, const void *buffer, uint32_t size,
-                          chi_interface_callback_t cb)
-    __attribute__((alias("uart_apb_write"), used, visibility("default")));
-
 chi_interface_api_t uart_api = {
     .open = uart_apb_open, .close = uart_apb_close, .read = uart_apb_read, .write = uart_apb_write};
 /// @endcond
