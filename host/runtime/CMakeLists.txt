@@ -7,7 +7,7 @@
 
 target_include_directories(runtime_host
   PUBLIC
-    ${PROJECT_SOURCE_DIR}/host/runtime/inc
+    ${CMAKE_CURRENT_LIST_DIR}/inc
 )
 
 if(SIMULATION_BACKEND STREQUAL "RTL")
@@ -30,5 +30,3 @@ target_sources(runtime_host PRIVATE
   src/alloc.c
   src/stdio.c
 )
-
-add_dependencies(runtime_host picolibc)
