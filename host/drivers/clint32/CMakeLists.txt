@@ -4,27 +4,27 @@
 #
 # Viviane Potocnik <vivianep@iis.ee.ethz.ch>
 
-# APB UART Driver CMake Configuration
+# 32-bit CLINT Driver CMake Configuration
 
-add_library(uart_lib STATIC)
+add_library(clint_lib STATIC)
 
 file(GLOB_RECURSE SOURCES
   "src/*.c"
 )
 
-target_sources(uart_lib
+target_sources(clint_lib
   PRIVATE
     ${SOURCES}
 )
 
-target_include_directories(uart_lib
+target_include_directories(clint_lib
   PUBLIC
-    ${PROJECT_SOURCE_DIR}/hal/inc
+    ${PROJECT_SOURCE_DIR}/host/hal/inc
+    ${PROJECT_SOURCE_DIR}/targets/${TARGET_PLATFORM}/inc
     "inc/"
 )
 
-target_link_libraries(uart_lib
+target_link_libraries(clint_lib
   PUBLIC
     runtime_host
 )
-

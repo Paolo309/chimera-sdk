@@ -7,7 +7,7 @@
 
 target_include_directories(runtime_host
   PUBLIC
-    ${PROJECT_SOURCE_DIR}/generic_runtime/inc
+    ${PROJECT_SOURCE_DIR}/host/runtime/inc
 )
 
 if(SIMULATION_BACKEND STREQUAL "RTL")
@@ -19,14 +19,14 @@ if(SIMULATION_BACKEND STREQUAL "RTL")
   )
 elseif(SIMULATION_BACKEND STREQUAL "GVSoC")
   message(STATUS "Using GVSOC UART backend")
-  target_sources(runtime_host PRIVATE 
+  target_sources(runtime_host PRIVATE
   src/putc_gvsoc.c
-  src/uart_init_gvsoc.c 
+  src/uart_init_gvsoc.c
   src/uart_deinit_gvsoc.c
   )
 endif()
 
-target_sources(runtime_host PRIVATE 
+target_sources(runtime_host PRIVATE
   src/alloc.c
   src/stdio.c
 )

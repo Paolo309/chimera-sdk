@@ -19,7 +19,7 @@ target_sources(clint_lib
 
 target_include_directories(clint_lib
   PUBLIC
-    ${PROJECT_SOURCE_DIR}/hal/inc
+    ${PROJECT_SOURCE_DIR}/host/hal/inc
     ${PROJECT_SOURCE_DIR}/targets/${TARGET_PLATFORM}/inc
     "inc/"
 )

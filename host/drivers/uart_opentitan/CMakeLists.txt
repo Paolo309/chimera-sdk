@@ -14,7 +14,7 @@ set(OPENTITAN_TOP_DIR "${OPENTITAN_DIR}/hw/top_${TOP_TARGET}")
 set(GENERATE_OT_IPS_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/../../scripts/opentitan/generate_ot_ips.py")
 set(GENERATED_OUTPUT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/opentitan/hw/top_${TOP_TARGET}")
 
-# VIVIANEP: The following commit hash has been verified to 
+# VIVIANEP: The following commit hash has been verified to
 #           successfully build the OpenTitan IPs for the UART driver.
 set(OPENTITAN_COMMIT_HASH f995b5639fe7eefee047e03ccf262c0179f79ec8 CACHE STRING "OpenTitan commit hash")
 message(STATUS "[CHIMERA-SDK] Using OpenTitan commit: ${OPENTITAN_COMMIT_HASH}")
@@ -139,7 +139,7 @@ set(OPENTITAN_SPARSE_PATTERNS
   "hw/ip/*/data/*.hjson"
   "hw/ip_templates/"
   )
-  
+
 # ------------------------------------------------------------------------------
 # Call the OpenTitan driver setup
 # ------------------------------------------------------------------------------
@@ -202,6 +202,6 @@ target_include_directories(
   ${OPENTITAN_TOP_DIR}
   ${OPENTITAN_SW_DIR}/device/lib/dif/autogen
   ${OPENTITAN_DIR}
-  ${PROJECT_SOURCE_DIR}/hal/inc
-  ${PROJECT_SOURCE_DIR}/drivers/uart_opentitan/inc
+  ${PROJECT_SOURCE_DIR}/host/hal/inc
+  ${PROJECT_SOURCE_DIR}/host/drivers/uart_opentitan/inc
 )
