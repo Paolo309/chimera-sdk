@@ -17,11 +17,6 @@
 
 // Import HAL Headers
 
-// WIESEP: Dummy implementation to satisfy linker, actual implementation is in
-// offload_snitchCluster.c
-void _trampoline() {
-}
-
 int main() {
     return 0;
 }

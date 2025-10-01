@@ -4,12 +4,25 @@
 //
 // Moritz Scherer <scheremo@iis.ee.ethz.ch>
 
+// Include Standard Libraries
+#include <stdio.h>
+#include <string.h>
+#include <stdint.h>
+#include <math.h>
+
+// Include Application Headers
 #include "test_cluster.h"
 #include "test_host.h"
 #include "ita.h"
 
+// Include Target Specific Headers
 #include "soc.h"
-#include "cluster_4.h"
+
+// Include Driver Headers
+
+// Include Runtime Headers
+
+// Import HAL Headers
 
 static uint32_t *clintPointer = (uint32_t *)CLINT_CTRL_BASE;
 

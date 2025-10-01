@@ -20,7 +20,7 @@ target_compile_options(${TEST_NAME}_host
   PRIVATE
   -O2
 )
-target_link_libraries(${TEST_NAME}_host PUBLIC runtime_host trampoline_rv32im)
+target_link_libraries(${TEST_NAME}_host PUBLIC runtime_host trampoline_rv32im picolibc_host)
 
 ######## CLUSTER Code ##########################################################
 file(GLOB_RECURSE TEST_SNITCH_SRCS
@@ -35,7 +35,7 @@ target_compile_options(${TEST_NAME}_cluster
   PRIVATE
   -O2
 )
-target_link_libraries(${TEST_NAME}_cluster PUBLIC runtime_cluster_snitch)
+target_link_libraries(${TEST_NAME}_cluster PUBLIC runtime_cluster_snitch picolibc_cluster_snitch)
 
 ######## TEST Executable #######################################################
 add_chimera_test(

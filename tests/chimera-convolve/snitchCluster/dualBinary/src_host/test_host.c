@@ -4,10 +4,18 @@
 //
 // Moritz Scherer <scheremo@iis.ee.ethz.ch>
 
+// Include Standard Libraries
+
+// Include Application Headers
 #include "test_host.h"
 
-#include "soc.h"
-#include "driver.h"
+// Include Target Specific Headers
+
+// Include Driver Headers
+
+// Include Runtime Headers
+
+// Import HAL Headers
 
 int main() {
     return 1;

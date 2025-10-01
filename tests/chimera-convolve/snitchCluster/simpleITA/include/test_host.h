@@ -10,7 +10,7 @@
 #define TESTVAL 0x050CCE55
 
 typedef struct {
-    int value;
+    unsigned int value;
 } offloadArgs_t;
 
 #endif //_TEST_HOST_INCLUDE_GUARD_

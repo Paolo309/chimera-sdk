@@ -4,9 +4,22 @@
 //
 // Victor Jung <jungvi@iis.ee.ethz.ch>
 
-#include "uart.h"
-
+// Include Standard Libraries
 #include <stdio.h>
+#include <string.h>
+
+// Include Application Headers
+
+// Include Target Specific Headers
+#include "soc.h"
+
+// Include Driver Headers
+#include "driver.h"
+
+// Include Runtime Headers
+#include "util.h"
+
+// Import HAL Headers
 
 int main(void) {
 

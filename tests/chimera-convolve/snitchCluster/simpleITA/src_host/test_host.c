@@ -4,16 +4,24 @@
 //
 // Philip Wiese <wiesep@iis.ee.ethz.ch>
 
+// Include Standard Libraries
+
+// Include Application Headers
 #include "test_cluster.h"
 #include "test_host.h"
+#include "ita.h"
 
+// Include Target Specific Headers
 #include "soc.h"
+
+// Include Driver Headers
 #include "driver.h"
-#include "cluster_4.h"
+
+// Include Runtime Headers
+
+// Import HAL Headers
 
 #define STACK_ADDRESS (CLUSTER_4_TCDM_END_ADDR - 8)
-
-static uint32_t *clintPointer = (uint32_t *)CLINT_CTRL_BASE;
 
 static offloadArgs_t offloadArgs = {.value = 0xdeadbeef};
 

@@ -4,15 +4,28 @@
 //
 // Victor Jung <jungvi@iis.ee.ethz.ch>
 
+// Include Standard Libraries
+#include <stdio.h>
+#include <string.h>
+
+// Include Application Headers
+
+// Include Target Specific Headers
+#include "soc.h"
+
+// Include Driver Headers
+#include "driver.h"
+
+// Include Runtime Headers
+#include "util.h"
+
+// Import HAL Headers
+#include "clint.h"
 #include "uart.h"
 
-#include <stdio.h>
-
 int main(void) {
-
     volatile int a = 42;
-    printf("%d\n", a);
-    printf("CIAO\n");
+    printf("Chimera is alive! %d\n", a);
 
     // JUNGVI: This is here to give enough time to the UART buffer to finish it's transaction
     for (int i = 0; i < 420; i++) {

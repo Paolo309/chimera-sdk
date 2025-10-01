@@ -4,41 +4,22 @@
 //
 // Moritz Scherer <scheremo@iis.ee.ethz.ch>
 
-#include "test_cluster.h"
-
-#include "soc.h"
-
-#include "trampoline_snitchCluster.h"
-
+// Include Standard Libraries
+#include <stdio.h>
 #include <string.h>
+#include <stdint.h>
 #include <math.h>
 
-/**
- * @brief Interrupt handler for the cluster, which clears the interrupt flag for the current hart.
- *
- * @warning Stack, thread and global pointer might not yet be set up!
- */
-__attribute__((naked)) void clusterInterruptHandler() {
-    _SETUP_GP_TP();
+// Include Application Headers
+#include "test_cluster.h"
 
-    asm volatile(
-        // Load mhartid CSR into t0
-        "csrr t0, mhartid\n"
+// Include Target Specific Headers
 
-        // Load clint base address into t1
-        "la t1, __base_clint\n"
+// Include Driver Headers
 
-        // Calculate the interrupt target address: t1 = t1 + (t0 * 4)
-        "slli t0, t0, 2\n"
-        "add t1, t1, t0\n"
-        // Store 0 to the interrupt target address
-        "sw zero, 0(t1)\n"
-        "ret"
-        :            // No outputs
-        :            // No inputs
-        : "t0", "t1" // Declare clobbered registers
-    );
-}
+// Include Runtime Headers
+
+// Import HAL Headers
 
 /**
  * @brief Main function of the cluster test.
@@ -46,6 +27,8 @@ __attribute__((naked)) void clusterInterruptHandler() {
  * @return int Return 0 if the test was successful, -1 otherwise.
  */
 int32_t testReturn(void *args) {
+    (void)args;
+
     // memcpy
     volatile int32_t src[4] = {1, 2, 3, 4}; // Use volatile to prevent optimization
     volatile int32_t dst[4] = {0, 0, 0, 0};

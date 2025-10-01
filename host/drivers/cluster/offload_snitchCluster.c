@@ -23,10 +23,6 @@
 // Import HAL Headers
 #include "device_api.h"
 
-#include "soc.h"
-#include "offload_snitchCluster.h"
-#include "device_api.h"
-
 /**
  * \defgroup hal_snitchcluster Snitch Cluster HAL Device
  * @ingroup device

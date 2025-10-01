@@ -4,12 +4,22 @@
 //
 // Moritz Scherer <scheremo@iis.ee.ethz.ch>
 
+// Include Standard Libraries
+#include <stdio.h>
+#include <string.h>
+
+// Include Application Headers
 #include "test_cluster.h"
 #include "test_host.h"
 
+// Include Target Specific Headers
 #include "soc.h"
 
+// Include Driver Headers
 #include "trampoline_snitchCluster.h"
+
+// Include Runtime Headers
+#include "snrt.h"
 
 /**
  * @brief Interrupt handler for the cluster, which clears the interrupt flag for the current hart.
@@ -51,6 +61,15 @@ int32_t testReturn(void *args) {
     if (argsStruct->value != 0xdeadbeef) {
         return -1;
     }
+
+    dm_init();
+    eu_init();
+
+    snrt_l1_start_addr();
+
+    snrt_cls_base_addr();
+
+    printf("Hello from cluster core %d!\n", snrt_cluster_core_idx());
 
     return TESTVAL;
 }
