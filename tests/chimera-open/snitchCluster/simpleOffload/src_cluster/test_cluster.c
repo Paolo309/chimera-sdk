@@ -62,7 +62,5 @@ int32_t testReturn(void *args) {
         return -1;
     }
 
-    printf("Hello from cluster core %d!\n", snrt_cluster_core_idx());
-
     return TESTVAL;
 }
