@@ -20,7 +20,7 @@ target_compile_options(${TEST_NAME}_host
   PRIVATE
   -O2
 )
-target_link_libraries(${TEST_NAME}_host PUBLIC hal_host)
+target_link_libraries(${TEST_NAME}_host PUBLIC runtime_host trampoline_rv32im)
 
 ######## CLUSTER Code ##########################################################
 file(GLOB_RECURSE TEST_SNITCH_SRCS

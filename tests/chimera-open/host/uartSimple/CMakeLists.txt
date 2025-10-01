@@ -14,7 +14,7 @@ file(GLOB_RECURSE TEST_HOST_SRCS
 add_library(${TEST_NAME}_host OBJECT ${TEST_HOST_SRCS})
 target_include_directories(${TEST_NAME}_host PUBLIC
     inc
-    ${PROJECT_SOURCE_DIR}/devices/snitch_cluster
+    ${PROJECT_SOURCE_DIR}/devices
 )
 
 # WIESEP: Set the correct ISA and ABI for the host

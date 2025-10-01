@@ -17,27 +17,23 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_COMPILER_WORKS 1)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
-# set(CMAKE_VERBOSE_MAKEFILE TRUE)
+# include(cmake/debug.cmake)
 
 # WIESEP: It is important to set the ISA and ABI for the host and the cluster snitch
-set(ABI ilp32)
-set(ISA_CLUSTER_SNITCH rv32im)
+set(ABI_HOST ilp32)
+set(ABI_CLUSTER_SNITCH ilp32)
+set(ISA_CLUSTER_SNITCH rv32ima_xdma)
 set(ISA_HOST rv32imc)
+
+# extract base ISA (e.g. rv32ima from rv32ima_xdma)
+string(REGEX MATCH "^[a-z0-9]+" ISA_HOST_BASE ${ISA_HOST})
+string(REGEX MATCH "^[a-z0-9]+" ISA_CLUSTER_SNITCH_BASE ${ISA_CLUSTER_SNITCH})
 
 # Set host-specific flags
 set(HOST_ARCH "riscv32")
 set(HOST_FAMILY "riscv32")
 set(HOST_ENDIAN "little")
 set(HOST_SYSTEM "none")
-
-message(STATUS "[CHIMERA-SDK] ABI                   : ${ABI}")
-message(STATUS "[CHIMERA-SDK] ISA_HOST              : ${ISA_HOST}")
-message(STATUS "[CHIMERA-SDK] ISA_CLUSTER_SNITCH    : ${ISA_CLUSTER_SNITCH}")
-if (${DISASSEMBLE_LIBRARIES})
-  message(STATUS "[CHIMERA-SDK] DISASSEMBLE_LIBRARIES : ON")
-else()
-  message(STATUS "[CHIMERA-SDK] DISASSEMBLE_LIBRARIES : OFF")
-endif()
 
 # SCHEREMO: This toolchain file is only used for test compilation!
 set(CMAKE_TOOLCHAIN_FILE cmake/toolchain_llvm.cmake)
@@ -48,6 +44,15 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 project(chimera-sdk LANGUAGES C ASM)
 
+message(STATUS "[CHIMERA-SDK] ABI_HOST              : ${ABI_HOST}")
+message(STATUS "[CHIMERA-SDK] ISA_HOST              : ${ISA_HOST}")
+message(STATUS "[CHIMERA-SDK] ABI_CLUSTER_SNITCH    : ${ABI_CLUSTER_SNITCH}")
+message(STATUS "[CHIMERA-SDK] ISA_CLUSTER_SNITCH    : ${ISA_CLUSTER_SNITCH}")
+if (${DISASSEMBLE_LIBRARIES})
+  message(STATUS "[CHIMERA-SDK] DISASSEMBLE_LIBRARIES : ON")
+else()
+  message(STATUS "[CHIMERA-SDK] DISASSEMBLE_LIBRARIES : OFF")
+endif()
 
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/Utils.cmake)
 
@@ -87,6 +92,8 @@ if(NOT SIMULATION_BACKEND IN_LIST VALID_SIMULATION_BACKEND)
   foreach(mode IN LISTS VALID_SIMULATION_BACKEND)
       list(APPEND error_messages " - ${mode}")
   endforeach()
+else()
+  message(STATUS "[CHIMERA-SDK] Hardware Backend      : ${SIMULATION_BACKEND}")
 endif()
 
 # Config Variables Default Values

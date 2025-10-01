@@ -4,11 +4,22 @@
 //
 // Lorenzo Leone <lleone@iis.ee.ethz.ch>
 
+// Include Standard Libraries
+#include <stdint.h>
+#include <stdbool.h>
+#include <stddef.h>
+
+// Include Target Specific Headers
 #include "soc.h"
+
+// Include Driver Headers
 #include "fll.h"
 
-#include <stdint.h>
-#include <stddef.h>
+// Include Runtime Headers
+#include "util.h"
+
+// Import HAL Headers
+// #include "interrupt_api.h"
 
 /**
  * \addtogroup drivers

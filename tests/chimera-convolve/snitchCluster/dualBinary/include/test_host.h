@@ -2,12 +2,9 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 //
-// Viviane Potocnik <vivianep@iis.ee.ethz.ch>
+// Philip Wiese <wiesep@iis.ee.ethz.ch>
 
-#ifndef COMMON_H
-#define COMMON_H
+#ifndef _TEST_HOST_INCLUDE_GUARD_
+#define _TEST_HOST_INCLUDE_GUARD_
 
-#include "soc.h"
-#include "trampoline_snitchCluster.h"
-
-#endif // COMMON_H
+#endif //_TEST_HOST_INCLUDE_GUARD_

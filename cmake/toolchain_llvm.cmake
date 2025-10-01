@@ -61,23 +61,12 @@ add_compile_options("--target=${CROSS_COMPILE_HOST}")
 
 add_compile_options(-ggdb -gdwarf-4 -gstrict-dwarf)
 
-# ————————————————————————————————————————————————————————————————
-# Ensure we pull in real 64-bit div/mod helpers on 32-bit RISC-V hosts
-# ————————————————————————————————————————————————————————————————
-if (HOST_ARCH STREQUAL "riscv32" AND ABI STREQUAL "ilp32")
-  message(STATUS "[CHIMERA-SDK] Linking compiler-rt builtins for RV32HOST")
-  # Prefer compiler-rt rather than libgcc
-  add_link_options("-rtlib=compiler-rt")
-  add_link_options("-nostdlib")
+message(STATUS "[CHIMERA-SDK] Linking compiler-rt builtins for RV32HOST")
+# Prefer compiler-rt rather than libgcc
+add_link_options("-rtlib=compiler-rt")
+add_link_options("-nostdlib")
 
-  include_directories(${CMAKE_BINARY_DIR}/picolibc-install-${ISA_HOST}-${ABI}/include)
+include_directories(${CMAKE_BINARY_DIR}/picolibc-install/include)
 
-  # Point at the compiler-rt builtins
-  link_directories(
-    ${TOOLCHAIN_DIR}/lib/clang/${LLVM_VERSION}/lib/baremetal/rv32imc
-  )
-
-  # Globally add the real builtins if RV32
-  add_link_options("-lclang_rt.builtins-riscv32")
-endif()
-# ————————————————————————————————————————————————————————————————
+# Globally add the real builtins if RV32
+add_link_options("-lclang_rt.builtins-riscv32")

@@ -2,12 +2,13 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 //
-// Viviane Potocnik <vivianep@iis.ee.ethz.ch>
+// Moritz Scherer <scheremo@iis.ee.ethz.ch>
 
-#ifndef COMMON_H
-#define COMMON_H
+#include "test_host.h"
 
 #include "soc.h"
-#include "trampoline_snitchCluster.h"
+#include "driver.h"
 
-#endif // COMMON_H
+int main() {
+    return 1;
+}

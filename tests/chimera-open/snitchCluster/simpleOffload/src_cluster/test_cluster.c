@@ -9,7 +9,7 @@
 
 #include "soc.h"
 
-#include "trampoline_snitchCluster.h"
+#include "snitch_cluster/trampoline_snitchCluster.h"
 
 /**
  * @brief Interrupt handler for the cluster, which clears the interrupt flag for the current hart.

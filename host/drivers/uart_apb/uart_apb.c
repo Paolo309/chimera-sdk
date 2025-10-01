@@ -18,10 +18,24 @@
  *
  */
 
-#include "uart_apb.h"
-#include "util.h"
+// Include Standard Libraries
+#include <stdint.h>
+#include <stdbool.h>
+#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
+
+// Include Target Specific Headers
+#include "soc.h"
+
+// Include Driver Headers
+#include "uart_apb.h"
+
+// Include Runtime Headers
+#include "util.h"
+
+// Import HAL Headers
+#include "interface_api.h"
 
 /**
  * @brief Checks if data is available to read from the UART receiver.
@@ -51,14 +65,9 @@ static inline int tx_ready(uint32_t base) {
  * @param iface UART interface instance.
  * @return 0 on success, -1 on failure.
  */
-int uart_apb_open(chi_interface_t *iface) {
+int uart_apb_open(const chi_interface_t *iface) {
     if (!iface || !iface->base) {
         return -1;
-    }
-
-    // Use default config if none provided
-    if (!iface->cfg) {
-        iface->cfg = (void *)&default_cfg;
     }
 
     uart_config_t *cfg = (uart_config_t *)iface->cfg;
@@ -93,7 +102,7 @@ int uart_apb_open(chi_interface_t *iface) {
  * @param iface UART interface instance.
  * @return 0 on success, -1 on failure.
  */
-int uart_apb_close(chi_interface_t *iface) {
+int uart_apb_close(const chi_interface_t *iface) {
     if (!iface || !iface->base) {
         return -1;
     }
@@ -118,7 +127,7 @@ int uart_apb_close(chi_interface_t *iface) {
  * @param cb Optional callback function (set to NULL if not needed).
  * @return Number of bytes read on success, -1 on failure.
  */
-ssize_t uart_apb_read(chi_interface_t *iface, void *buffer, uint32_t size,
+ssize_t uart_apb_read(const chi_interface_t *iface, void *buffer, uint32_t size,
                       chi_interface_callback_t cb) {
     if (!iface || !iface->base || !buffer || size == 0) {
         return -1;
@@ -149,7 +158,7 @@ ssize_t uart_apb_read(chi_interface_t *iface, void *buffer, uint32_t size,
  * @param cb Optional callback function (set to NULL if not needed).
  * @return Number of bytes written on success, -1 on failure.
  */
-ssize_t uart_apb_write(chi_interface_t *iface, const void *buffer, uint32_t size,
+ssize_t uart_apb_write(const chi_interface_t *iface, const void *buffer, uint32_t size,
                        chi_interface_callback_t cb) {
     if (!iface || !iface->base || !buffer || size == 0) {
         return -1;
@@ -175,7 +184,7 @@ ssize_t uart_apb_write(chi_interface_t *iface, const void *buffer, uint32_t size
 // to avoid duplicated defintion errors in the generated documentation
 
 /// @cond DOXYGEN_SHOULD_SKIP_THIS
-chi_interface_api_t uart_api = {
+const chi_interface_api_t default_uart_api = {
     .open = uart_apb_open, .close = uart_apb_close, .read = uart_apb_read, .write = uart_apb_write};
 /// @endcond
 

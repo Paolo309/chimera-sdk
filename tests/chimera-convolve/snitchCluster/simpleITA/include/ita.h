@@ -53,9 +53,10 @@ ita_write_regs(uint32_t input_addr, uint32_t weight_addr, uint32_t weight_next_a
     *(volatile uint32_t *)(CLUSTER_4_HWPE_ITA_BASE_ADDR + 0x58) = flags; // ctrl stream
 }
 
-static inline void __attribute((always_inline))
-ita_write_rqs_params(uint32_t eps1, uint32_t eps2, uint32_t right_shift1, uint32_t right_shift2,
-                     uint32_t add1, uint32_t add2) {
+static inline void __attribute((always_inline)) ita_write_rqs_params(uint32_t eps1, uint32_t eps2,
+                                                                     uint32_t right_shift1,
+                                                                     uint32_t right_shift2,
+                                                                     uint32_t add1, uint32_t add2) {
     *(volatile uint32_t *)(CLUSTER_4_HWPE_ITA_BASE_ADDR + 0x3C) = eps1;
     *(volatile uint32_t *)(CLUSTER_4_HWPE_ITA_BASE_ADDR + 0x40) = eps2;
     *(volatile uint32_t *)(CLUSTER_4_HWPE_ITA_BASE_ADDR + 0x44) = right_shift1;
@@ -66,24 +67,20 @@ ita_write_rqs_params(uint32_t eps1, uint32_t eps2, uint32_t right_shift1, uint32
 
 static inline void __attribute((always_inline)) ita_soft_clear() {
     *(volatile uint32_t *)(CLUSTER_4_HWPE_ITA_BASE_ADDR + 0x14) = 0;
-    for (volatile int i = 0; i < 10; i++)
-        ;
+    for (volatile int i = 0; i < 10; i++);
 }
 
 static inline void __attribute((always_inline)) ita_soft_clear_keep_regs() {
     *(volatile uint32_t *)(CLUSTER_4_HWPE_ITA_BASE_ADDR + 0x14) = 1;
-    for (volatile uint32_t i = 0; i < 10; i++)
-        ;
+    for (volatile uint32_t i = 0; i < 10; i++);
 }
 
 static inline void __attribute((always_inline)) ita_acquire_job() {
-    while (*(volatile uint32_t *)(CLUSTER_4_HWPE_ITA_BASE_ADDR + 0x04) < 1)
-        ;
+    while (*(volatile uint32_t *)(CLUSTER_4_HWPE_ITA_BASE_ADDR + 0x04) < 1);
 }
 
 static inline void __attribute((always_inline)) ita_wait_job() {
-    while (*(volatile uint32_t *)(CLUSTER_4_HWPE_BUSY_ADDR) != 0)
-        ;
+    while (*(volatile uint32_t *)(CLUSTER_4_HWPE_BUSY_ADDR) != 0);
 }
 
 static inline void __attribute((always_inline)) ita_trigger() {
@@ -95,4 +92,3 @@ static inline void __attribute((always_inline)) ita_commit() {
 }
 
 #endif //_ITA_INCLUDE_GUARD_
-

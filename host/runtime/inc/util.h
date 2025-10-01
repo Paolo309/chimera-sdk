@@ -4,10 +4,16 @@
 // Authors: Nicole Narr, Christopher Reinwardt,
 //          Paul Scheffler, Viviane Potocnik
 
-
 #pragma once
 
+// Include Standard Libraries
 #include <stdint.h>
+
+// Include Target Specific Headers
+
+// Include Driver Headers
+
+// Include Runtime Headers
 
 /** @name Register Access Helpers
  *  @brief Functions for reading/writing memory-mapped registers.
@@ -213,4 +219,3 @@ static inline void *gprw(void *gp) {
 #define MIN(a, b) (((a) <= (b)) ? (a) : (b))
 
 /** @} */
-

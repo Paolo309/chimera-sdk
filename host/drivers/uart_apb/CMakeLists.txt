@@ -12,5 +12,6 @@ file(GLOB_RECURSE C_SOURCES
 )
 
 target_sources(runtime_host PRIVATE ${C_SOURCES})
-target_compile_definitions(runtime_host INTERFACE CHIMERA_DRIVER_UART_APB)
+target_compile_definitions(runtime_host PUBLIC CHIMERA_DRIVER_UART_APB)
+target_compile_definitions(runtime_host PUBLIC CHIMERA_DRIVER_UART)
 

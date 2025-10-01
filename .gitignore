@@ -1,7 +1,9 @@
 *~
 .ninja*
 **/build/*
-drivers/*/thirdparty/
+.DS_Store
+
+# **/third_party/
 
 .vscode/settings.json
 

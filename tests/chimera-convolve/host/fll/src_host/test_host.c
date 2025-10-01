@@ -9,7 +9,6 @@
 #include <string.h>
 
 // Include Application Headers
-#include "common.h"
 
 // Include Target Specific Headers
 #include "soc.h"
@@ -19,11 +18,9 @@
 
 // Include Runtime Headers
 #include "util.h"
-#include "bitfield.h"
 
 // Import HAL Headers
-#include "clint.h"
-#include "uart.h"
+#include "interface_api.h"
 
 void setGPIO0_UART() {
     // Connect UART port to GPIO 0 Pad
@@ -42,7 +39,6 @@ void setGPIO0_GPIO() {
     chimera_padframe_aon_gpio_0_cfg_rxe_set(0);  // Disable Pad's Receiver
     chimera_padframe_aon_gpio_0_cfg_trie_set(0); // Disable the tri-state transmitter
 }
-
 
 void setGPIO2_GPIO() {
     // Connect GPIO 2 Pad to GPIO 2
@@ -73,7 +69,7 @@ void gpioSetOutput(uint32_t index, int value) {
 
 int main(void) {
     // Use default UART configuration
-    uart_config_t uart_cfg = default_cfg;
+    uart_config_t uart_cfg = default_uart_cfg;
 
     // Connect UART to GPIO 0
     setGPIO0_UART();
@@ -117,10 +113,10 @@ int main(void) {
     uart_cfg.clk_freq_hz = core_freq_fll;
 
     // Initialize the UART interface
-    uart_iface.cfg = &uart_cfg;
+    default_uart_inst.cfg = &uart_cfg;
 
     // Re-Open the UART interface
-    if (uart_open(&uart_iface) != 0) {
+    if (iface_open(&default_uart_inst) != 0) {
         return -1;
     }
 
@@ -136,7 +132,6 @@ int main(void) {
 
     // Enable FLL bypass
     gpioWrite(2, 1);
-
 
     return 1;
 }

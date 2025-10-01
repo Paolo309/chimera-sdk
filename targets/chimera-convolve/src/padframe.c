@@ -5,7 +5,7 @@
 #define CHIMERA_PADFRAME_AON_CONFIG0_BASE_ADDR CHIMERA_PADFRAME_BASE_ADDRESS
 #include "regs/padframe_aon_regs.h"
 
-#include "bitfield.h"
+#include "sw/device/lib/base/bitfield.h"
 
 #define REG_WRITE32(addr, value) *((volatile uint32_t *)addr) = (uint32_t)value;
 #define REG_READ32(addr) *((volatile uint32_t *)addr)

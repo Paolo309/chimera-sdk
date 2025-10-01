@@ -15,6 +15,5 @@ set(DRIVER_MAPPINGS
 # Call the macro
 add_chimera_subdirectories(${TARGET_PLATFORM} "Driver" "${DRIVER_MAPPINGS}")
 
-
 # WIESEP: Export this directory as root include directory for the drivers
 target_include_directories(runtime_host PUBLIC ${CMAKE_CURRENT_LIST_DIR})

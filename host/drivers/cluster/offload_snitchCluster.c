@@ -6,12 +6,26 @@
 // Philip Wiese <wiesep@iis.ee.ethz.ch>
 // Viviane Potocnik <vivianep@iis.ee.ethz.ch>
 
+// Include Standard Libraries
+#include <stdint.h>
+#include <stdbool.h>
+#include <stddef.h>
+
+// Include Target Specific Headers
+#include "soc.h"
+
+// Include Driver Headers
+#include "offload_snitchCluster.h"
+
+// Include Runtime Headers
+#include "util.h"
+
+// Import HAL Headers
+#include "device_api.h"
+
 #include "soc.h"
 #include "offload_snitchCluster.h"
 #include "device_api.h"
-
-#include <stdint.h>
-#include <stddef.h>
 
 /**
  * \defgroup hal_snitchcluster Snitch Cluster HAL Device
@@ -253,11 +267,11 @@ static ssize_t snitchcluster_read(chi_device_t *dev, void *buf, uint32_t len,
     return -1;
 }
 
-chi_device_api_t snitchcluster_api = {.open = snitchcluster_open,
-                                      .close = snitchcluster_close,
-                                      .read = snitchcluster_read,
-                                      .write =
-                                          (ssize_t(*)(chi_device_t *, const void *, uint32_t,
-                                                      chi_device_callback_t))offload_snitchCluster};
+chi_device_api_t snitchcluster_api = {
+    .open = snitchcluster_open,
+    .close = snitchcluster_close,
+    .read = snitchcluster_read,
+    .write = (ssize_t (*)(chi_device_t *, const void *, uint32_t,
+                          chi_device_callback_t))offload_snitchCluster};
 
 /// @endcond

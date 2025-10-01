@@ -8,6 +8,8 @@
 #include <stdio.h>
 #include <string.h>
 
+// Include Application Headers
+
 // Include Target Specific Headers
 #include "soc.h"
 
@@ -16,7 +18,6 @@
 
 // Include Runtime Headers
 #include "util.h"
-#include "bitfield.h"
 
 // Import HAL Headers
 #include "clint.h"

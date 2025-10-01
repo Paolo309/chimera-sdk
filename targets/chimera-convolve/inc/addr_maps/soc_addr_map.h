@@ -43,7 +43,6 @@ static uint8_t _chimera_numCores[] = {CLUSTER_0_NUMCORES, CLUSTER_1_NUMCORES, CL
 #endif
 #define CHIMERA_PADFRAME_STATIC_BASE_ADDRESS 0x30003000
 
-
 #define FLL_BASE_ADDR 0x30004000
 
 #endif

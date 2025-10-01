@@ -11,22 +11,15 @@ target_include_directories(runtime_host
 )
 
 if(SIMULATION_BACKEND STREQUAL "RTL")
-  message(STATUS "[CHIMERA-SDK] Using RTL UART backend")
-  target_sources(runtime_host PRIVATE
-  src/putc_rtl.c
-  src/uart_init_rtl.c
-  src/uart_deinit_rtl.c
-  )
+  target_compile_definitions(runtime_host PUBLIC CHIMERA_SIMULATION_BACKEND_RTL)
 elseif(SIMULATION_BACKEND STREQUAL "GVSoC")
-  message(STATUS "[CHIMERA-SDK] Using GVSOC UART backend")
-  target_sources(runtime_host PRIVATE
-  src/putc_gvsoc.c
-  src/uart_init_gvsoc.c
-  src/uart_deinit_gvsoc.c
-  )
+  target_compile_definitions(runtime_host PUBLIC CHIMERA_SIMULATION_BACKEND_GVSOC)
 endif()
 
 target_sources(runtime_host PRIVATE
+  src/putc.c
   src/alloc.c
   src/stdio.c
+  src/uart.c
+  src/clint.c
 )

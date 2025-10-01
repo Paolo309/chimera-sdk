@@ -8,6 +8,6 @@
 #define COMMON_H
 
 #include "soc.h"
-#include "trampoline_snitchCluster.h"
+#include "snitch_cluster/trampoline_snitchCluster.h"
 
 #endif // COMMON_H

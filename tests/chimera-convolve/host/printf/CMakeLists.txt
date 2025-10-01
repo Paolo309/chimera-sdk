@@ -15,11 +15,8 @@ add_library(${TEST_NAME}_host OBJECT ${TEST_HOST_SRCS})
 
 # WIESEP: Set the correct ISA and ABI for the host
 target_compile_options(${TEST_NAME}_host PRIVATE -O2)
-target_link_libraries(${TEST_NAME}_host PUBLIC hal_host)
+target_link_libraries(${TEST_NAME}_host PUBLIC hal_host picolibc_host trampoline_rv32im)
 
 ######## TEST Executable #######################################################
 add_chimera_test(${TEST_NAME})
 target_link_libraries(${TEST_NAME} PUBLIC ${TEST_NAME}_host)
-
-# Include cluster runtime to resolve the _trampoline symbol used by the host.
-target_link_libraries(${TEST_NAME} PUBLIC runtime_cluster_snitch)

@@ -4,8 +4,15 @@
 //
 // Victor Jung <jungvi@iis.ee.ethz.ch>
 
+// Include Standard Libraries
 #include <stdint.h>
 #include <stddef.h>
+
+// Include Target Specific Headers
+
+// Include Driver Headers
+
+// Include Runtime Headers
 
 // JUNGVI: Number of bytes to align to.
 #define ALIGNMENT 4

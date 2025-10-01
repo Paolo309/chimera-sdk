@@ -12,6 +12,13 @@
 ################################################################################
 add_library(runtime_host STATIC)
 
+target_link_directories(runtime_host PUBLIC
+  ${TOOLCHAIN_DIR}/lib/clang/${LLVM_VERSION}/lib/baremetal/${ISA_HOST_BASE}
+)
+
+# WIESEP: Make sure picolibc exists before building the host runtime for the header files
+add_dependencies(runtime_host picolibc)
+
 file(GLOB_RECURSE ASM_SOURCES
   "src/crt0.S"
 )
@@ -32,6 +39,7 @@ target_sources(runtime_host
 target_include_directories(runtime_host
   PUBLIC
   ${CMAKE_CURRENT_LIST_DIR}/inc
+  ${CMAKE_CURRENT_LIST_DIR}/inc/regs
   ${PROJECT_SOURCE_DIR}/host/hal/inc
 )
 
@@ -44,7 +52,7 @@ target_compile_options(runtime_host
   PUBLIC
   --target=riscv32-unknown-elf
   -march=${ISA_HOST}
-  -mabi=${ABI}
+  -mabi=${ABI_HOST}
 )
 
 # WIESEP: Export the target specific linkerscript
@@ -54,7 +62,7 @@ target_link_options(runtime_host
   -Tlink.ld
   --target=riscv32-unknown-elf
   -march=${ISA_HOST}
-  -mabi=${ABI}
+  -mabi=${ABI_HOST}
   -nostartfiles
   -ffreestanding
 )
@@ -63,6 +71,13 @@ target_link_options(runtime_host
 # Snitch Cluster Runtime Library                                               #
 ################################################################################
 add_library(runtime_cluster_snitch STATIC)
+
+target_link_directories(runtime_cluster_snitch PUBLIC
+  ${TOOLCHAIN_DIR}/lib/clang/${LLVM_VERSION}/lib/baremetal/${ISA_CLUSTER_SNITCH_BASE}
+)
+
+# WIESEP: Make sure picolibc exists before building the host runtime for the header files
+add_dependencies(runtime_cluster_snitch picolibc)
 
 # WIESEP: Export the headers also to the cluster runtime
 target_include_directories(runtime_cluster_snitch
@@ -80,7 +95,7 @@ target_compile_options(runtime_cluster_snitch
   PUBLIC
   --target=riscv32-unknown-elf
   -march=${ISA_CLUSTER_SNITCH}
-  -mabi=${ABI}
+  -mabi=${ABI_CLUSTER_SNITCH}
 )
 
 # WIESEP: Expose common link option
@@ -88,7 +103,7 @@ target_link_options(runtime_cluster_snitch
   PUBLIC
   --target=riscv32-unknown-elf
   -march=${ISA_CLUSTER_SNITCH}
-  -mabi=${ABI}
+  -mabi=${ABI_CLUSTER_SNITCH}
   -nostartfiles
   -ffreestanding
 )

@@ -9,7 +9,6 @@
 #include <string.h>
 
 // Include Application Headers
-#include "common.h"
 
 // Include Target Specific Headers
 #include "soc.h"
@@ -19,11 +18,9 @@
 
 // Include Runtime Headers
 #include "util.h"
-#include "bitfield.h"
 
 // Import HAL Headers
-#include "clint.h"
-#include "uart.h"
+#include "interface_api.h"
 
 void setGPIO0_UART() {
     // Connect UART port to GPIO 0 Pad
@@ -39,7 +36,7 @@ int main(void) {
     setGPIO0_UART();
 
     // 1. Configure the UART from defaults
-    uart_config_t uart_cfg = default_cfg;
+    uart_config_t uart_cfg = default_uart_cfg;
 
     // 2. Read the RTC frequency from a hardware register
     uint32_t rtc_freq = *reg32(&__base_regs, CHESHIRE_RTC_FREQ_REG_OFFSET);
@@ -54,11 +51,11 @@ int main(void) {
     chi_interface_t uart_iface = {
         .base = (uintptr_t)&__base_uart,
         .cfg = &uart_cfg,
-        .api = &uart_api,
+        .api = &default_uart_api,
     };
 
     // 6. Open the UART interface
-    if (uart_open(&uart_iface) != 0) {
+    if (iface_open(&uart_iface) != 0) {
         return -1;
     }
 
@@ -72,19 +69,19 @@ int main(void) {
     char response_buffer[sizeof(expected_response)] = {0};
 
     // 9. Write the command to UART
-    if (uart_write(&uart_iface, uart_cmd, (uint32_t)cmd_len, NULL) < 0) {
-        uart_close(&uart_iface);
+    if (iface_write(&uart_iface, uart_cmd, (uint32_t)cmd_len, NULL) < 0) {
+        iface_close(&uart_iface);
         return -1;
     }
 
     // 10. Read the response from UART
-    if (uart_read(&uart_iface, response_buffer, (uint32_t)expected_len, NULL) < 0) {
-        uart_close(&uart_iface);
+    if (iface_read(&uart_iface, response_buffer, (uint32_t)expected_len, NULL) < 0) {
+        iface_close(&uart_iface);
         return -1;
     }
 
     // 11. Validate the response
     bool ok = (strncmp(response_buffer, expected_response, expected_len) == 0);
-    uart_close(&uart_iface);
+    iface_close(&uart_iface);
     return ok ? 0 : -1;
 }

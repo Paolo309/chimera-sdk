@@ -4,8 +4,7 @@
 //
 // Philip Wiese <wiesep@iis.ee.ethz.ch>
 
-#ifndef _CLUSTER_SNITCH_OFFLOAD_INCLUDE_GUARD_
-#define _CLUSTER_SNITCH_OFFLOAD_INCLUDE_GUARD_
+#pragma once
 
 #include <stdint.h>
 
@@ -32,5 +31,3 @@ void wait_snitchCluster_busy(uint8_t clusterId);
 uint32_t wait_snitchCluster_return(uint8_t clusterId);
 
 /** @} */
-
-#endif //_CLUSTER_SNITCH_OFFLOAD_INCLUDE_GUARD_
