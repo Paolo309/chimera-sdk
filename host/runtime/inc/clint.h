@@ -20,9 +20,10 @@
 #include "interrupt_api.h"
 
 /**
- * \defgroup hal_clint CLINT HAL Interface
- * @ingroup hal_interrupt
- * @brief CLINT-specific implementation of the generic interrupt-controller API.
+ * \defgroup drivers_clint CLINT Driver
+ * @ingroup runtime
+ * @ingroup drivers
+ * @brief Core Local Interruptor (CLINT) driver implementation for Chimera-SDK.
  * @{
  */
 
@@ -130,6 +131,6 @@ void clint_sleep_ticks(uint32_t timer_idx, uint32_t ticks);
 }
 #endif
 
-/** @} */ // end defgroup hal_clint
+/** @} */ // end defgroup drivers_clint
 
 #endif // CHIMERA_DRIVER_CLINT

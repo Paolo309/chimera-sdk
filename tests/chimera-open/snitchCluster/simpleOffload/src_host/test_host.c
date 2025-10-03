@@ -20,16 +20,19 @@
 
 // Import HAL Headers
 
-#define STACK_ADDRESS (CLUSTER_4_BASE + 0x20000 - 8)
+#define STACK_ADDRESS_0 (CLUSTER_0_BASE + 0x20000 - 1)
 
 static offloadArgs_t offloadArgs = {.value = 0xdeadbeef};
 
 int main() {
-    setup_snitchCluster_interruptHandler(clusterInterruptHandler);
-    offload_snitchCluster_core(testReturn, &offloadArgs, (void *)(STACK_ADDRESS), 4, 0);
-    uint32_t retVal = wait_snitchCluster_return(4);
+    void *stack_cluster0_ptr[CLUSTER_0_NUMCORES];
+    generate_snitchCluster_SPs_uniform(0, (void *)STACK_ADDRESS_0, 0x2000, stack_cluster0_ptr);
 
-    printf("Returned value: 0x%08x\n", retVal);
+    setup_snitchCluster_interruptHandler(clusterInterruptHandler);
+    offload_snitchCluster(testReturn, &offloadArgs, stack_cluster0_ptr, 0);
+    uint32_t retVal = wait_snitchCluster_return(0);
+
+    printf("Returned value: 0x%08x (%d)\n", retVal, retVal);
     printf("Expected value: 0x%08x\n", (TESTVAL | 0x000000001));
 
     return (retVal != (TESTVAL | 0x000000001));

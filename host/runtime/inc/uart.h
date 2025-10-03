@@ -21,12 +21,10 @@
 #include "interface_api.h"
 
 /**
- * @defgroup hal_uart UART HAL Interface
- * @ingroup hal_interface
- * @brief UART HAL interface for Chimera-SDK.
- *
- * This module defines the UART configuration structure and HAL API functions
- * for interfacing with different UART drivers in Chimera-SDK.
+ * \defgroup drivers_uart UART Driver
+ * @ingroup runtime
+ * @ingroup drivers
+ * @brief Generic UART driver implementation for Chimera-SDK.
  * @{
  */
 
@@ -147,6 +145,6 @@ int uart_putc(char c, FILE *file);
 }
 #endif
 
-/** @} */ // end defgroup hal_uart
+/** @} */ // end defgroup drivers_uart
 
 #endif // CHIMERA_DRIVER_UART

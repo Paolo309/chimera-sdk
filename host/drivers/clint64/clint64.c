@@ -9,8 +9,9 @@
 
 /**
  * \defgroup drivers_clint_64 64-bit CLINT Driver
- * @{
+ * @ingroup drivers
  * @brief 64-bit CLINT driver implementation for Chimera-SDK.
+ * @{
  *
  */
 
@@ -31,6 +32,10 @@
 
 // Import HAL Headers
 #include "interrupt_api.h"
+
+// VIVIANEP: Need to skip doxygen generation for these functions
+// to avoid duplicated defintion errors in the generated documentation
+/// @cond DOXYGEN_SHOULD_SKIP_THIS
 
 /*---------------------------------------------------------------------------*/
 /* 64‑bit CLINT core routines                                                 */
@@ -148,9 +153,7 @@ void clint_sleep_ticks(uint32_t timer_idx, uint32_t ticks) {
     clint_sleep_until(timer_idx, clint_get_mtime() + ticks);
 }
 
-// VIVIANEP: Skip Doxygen generation for these alias functions to avoid duplicate definitions
-
-/// @cond DOXYGEN_SHOULD_SKIP_THIS
+/// @endcond
 
 /*---------------------------------------------------------------------------*/
 /* Provide driver‑specific chi_interrupt_api_t for CLINT                      */
@@ -191,6 +194,9 @@ static int clint64_acknowledge(const chi_interrupt_t *ctrl, int irq) {
 static void clint64_dispatch(const chi_interrupt_t *ctrl) {
     (void)ctrl;
 }
+
+// VIVIANEP: Skip Doxygen generation for these alias functions to avoid duplicate definitions
+/// @cond DOXYGEN_SHOULD_SKIP_THIS
 
 /* Export the CLINT-specific interrupt API */
 const chi_interrupt_api_t default_clint_api = {.init = clint64_init,

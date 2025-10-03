@@ -14,6 +14,11 @@
 
 // Include Runtime Headers
 
+/**
+ * \addtogroup runtime
+ * @{
+ */
+
 // JUNGVI: Number of bytes to align to.
 #define ALIGNMENT 4
 #define ALIGN(size) (((size) + (ALIGNMENT - 1)) & ~(ALIGNMENT - 1))
@@ -72,3 +77,5 @@ void *memory_island_malloc(size_t size) {
 void memory_island_free(void *ptr) {
     region_free(&memory_island_freelist, ptr);
 }
+
+/** @} */ // end addtogroup runtime

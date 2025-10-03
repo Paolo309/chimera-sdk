@@ -5,20 +5,6 @@
 # Philip Wiese <wiesep@iis.ee.ethz.ch>
 
 ################################################################################
-# Trampoline Functions
-################################################################################
-if (NOT ${TARGET_PLATFORM} STREQUAL "chimera-host")
-  add_library(trampoline_rv32im STATIC)
-  target_compile_options(trampoline_rv32im
-    PRIVATE
-    -O2
-    --target=riscv32-unknown-elf
-    -march=rv32im
-    -mabi=ilp32
-  )
-endif()
-
-################################################################################
 # Device Libraries
 ################################################################################
 set(DEVICE_MAPPINGS

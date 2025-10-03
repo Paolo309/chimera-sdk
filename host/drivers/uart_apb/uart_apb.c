@@ -5,10 +5,9 @@
 // Viviane Potocnik <vivianep@iis.ee.ethz.ch>
 
 /**
- * \addtogroup drivers
- * @{
  * \defgroup drivers_uart_apb UART APB Driver
- * @ingroup hal_interface
+ * @ingroup drivers_uart
+ * @ingroup drivers
  * @{
  * @brief APB UART driver implementation for Chimera-SDK.
  *
@@ -182,11 +181,9 @@ ssize_t uart_apb_write(const chi_interface_t *iface, const void *buffer, uint32_
 
 // VIVIANEP: Need to skip doxygen generation for these functions
 // to avoid duplicated defintion errors in the generated documentation
-
 /// @cond DOXYGEN_SHOULD_SKIP_THIS
 const chi_interface_api_t default_uart_api = {
     .open = uart_apb_open, .close = uart_apb_close, .read = uart_apb_read, .write = uart_apb_write};
 /// @endcond
 
 /** @} */ // End of drivers_uart_apb group
-/** @} */ // End of drivers group

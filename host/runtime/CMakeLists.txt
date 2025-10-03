@@ -7,7 +7,7 @@
 
 target_include_directories(runtime_host
   PUBLIC
-    ${CMAKE_CURRENT_LIST_DIR}/inc
+  ${CMAKE_CURRENT_LIST_DIR}/inc
 )
 
 if(SIMULATION_BACKEND STREQUAL "RTL")

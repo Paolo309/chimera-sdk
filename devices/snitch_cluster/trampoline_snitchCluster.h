@@ -9,7 +9,7 @@
 
 #include <stdint.h>
 
-/** \addtogroup devices_snitchCluster
+/** \addtogroup device_snitchCluster
  *  @{
  */
 

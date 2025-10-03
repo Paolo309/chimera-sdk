@@ -10,8 +10,9 @@
 
 /**
  * \defgroup drivers_clint_32 32-bit CLINT Driver
- * @{
+ * @ingroup drivers
  * @brief 32-bit CLINT driver implementation for Chimera-SDK.
+ * @{
  *
  * This file provides the implementation of the 32-bit CLINT driver.
  * It includes functions for reading the current time, comparing times,
@@ -35,6 +36,10 @@
 
 // Import HAL Headers
 #include "interrupt_api.h"
+
+// VIVIANEP: Need to skip doxygen generation for these functions
+// to avoid duplicated defintion errors in the generated documentation
+/// @cond DOXYGEN_SHOULD_SKIP_THIS
 
 /*---------------------------------------------------------------------------*/
 /* 32‑bit CLINT core routines                                                */
@@ -164,9 +169,8 @@ void clint_sleep_ticks(uint32_t timer_idx, uint32_t ticks) {
     clint_sleep_until(timer_idx, target);
 }
 
-// VIVIANEP: Skip Doxygen generation for these alias functions to avoid duplicate definitions
+/// @endcond
 
-/// @cond DOXYGEN_SHOULD_SKIP_THIS
 /*---------------------------------------------------------------------------*/
 /* Provide driver-specific chi_interrupt_api_t for CLINT                     */
 /*---------------------------------------------------------------------------*/
@@ -206,6 +210,9 @@ static int clint32_acknowledge(const chi_interrupt_t *ctrl, int irq) {
 static void clint32_dispatch(const chi_interrupt_t *ctrl) {
     (void)ctrl;
 }
+
+// VIVIANEP: Skip Doxygen generation for these alias functions to avoid duplicate definitions
+/// @cond DOXYGEN_SHOULD_SKIP_THIS
 
 /* Export the CLINT-specific interrupt API */
 const chi_interrupt_api_t default_clint_api = {.init = clint32_init,

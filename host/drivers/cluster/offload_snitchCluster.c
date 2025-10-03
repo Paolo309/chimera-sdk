@@ -10,6 +10,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdio.h>
 
 // Include Target Specific Headers
 #include "soc.h"
@@ -24,14 +25,11 @@
 #include "device_api.h"
 
 /**
- * \defgroup hal_snitchcluster Snitch Cluster HAL Device
- * @ingroup device
- * @brief Offload driver for Snitch cluster accelerators in Chimera-SDK.
+ * \defgroup drivers_snitch_cluster Snitch Cluster Device Driver
+ * @ingroup drivers
+ * @brief Driver for offloading tasks to Snitch clusters in Chimera-SDK.
  * @{
  */
-
-/** \addtogroup cluster
- *  @{ */
 
 /**
  * @brief Persistent trampoline function pointers for each cluster core.
@@ -54,6 +52,7 @@ void *_trampoline_args[NUM_CLUSTER_CORES] = {NULL};
  */
 void *_trampoline_stack[NUM_CLUSTER_CORES] = {NULL};
 
+/// @cond DOXYGEN_SHOULD_SKIP_THIS
 /**
  * @brief Trampoline function for the cluster core.
  * This function will set up the stack pointer and call the function.
@@ -62,26 +61,45 @@ void *_trampoline_stack[NUM_CLUSTER_CORES] = {NULL};
  *
  */
 extern void _trampoline();
+/// @endcond
 
 /**
  * @brief Generate a trampoline function for the cluster core.
  * The trampoline function will set up the stack pointer and call the function.
  *
- * @param core_id ID of the core to offload to
+ * @param hartID hart ID of the core to offload to
  * @param function Function pointer to offload
  * @param args Arguments to pass to the function
  * @param stack Stack pointer for core
  * @return A pointer to the persistent trampoline function
  */
-static void *_generate_trampoline(uint32_t core_id, void (*function)(void *), void *args,
+static void *_generate_trampoline(uint32_t hartID, void (*function)(void *), void *args,
                                   void *stack) {
+    uint32_t trampoline_idx = hartID - CLUSTER_HART_BASE;
+
     // Assign trampoline with captured arguments to the persistent function pointer
-    _trampoline_function[core_id] = function;
-    _trampoline_args[core_id] = args;
-    _trampoline_stack[core_id] = stack;
+    _trampoline_function[trampoline_idx] = function;
+    _trampoline_args[trampoline_idx] = args;
+    _trampoline_stack[trampoline_idx] = stack;
 
     // Store captured arguments in a persistent context if needed
+    printf("  Function  : %p @ %p\n", function, &_trampoline_function[trampoline_idx]);
+    printf("  Args      : %p @ %p\n", args, &_trampoline_args[trampoline_idx]);
+    printf("  Stack     : %p @ %p\n", stack, &_trampoline_stack[trampoline_idx]);
+    printf("  Trampoline: %p\n", _trampoline);
     return _trampoline;
+}
+
+/**
+ * @brief Get the hart ID of a core within a cluster.
+ *
+ * @param clusterId ID of the cluster
+ * @param core_id ID of the core
+ *
+ * @return uint32_t Hart ID of the core
+ */
+static uint32_t _get_hart_id(uint32_t clusterId, uint32_t core_id) {
+    return _chimera_hartBase[clusterId] + core_id;
 }
 
 /**
@@ -95,6 +113,61 @@ void setup_snitchCluster_interruptHandler(void *handler) {
         (volatile void **)(SOC_CTRL_BASE + CHIMERA_SNITCH_INTR_HANDLER_ADDR_REG_OFFSET);
 
     *snitchTrapHandlerAddr = handler;
+}
+
+/**
+ * @brief Generate the stack pointers for all cores a given cluster using given stack sizes
+ *    passed on a per-core bases. The stack pointers are generated compliant to the RISCV-ABI
+ *    and are aligned to 16-Byte boundaries and assumed to grow downwards.
+ *
+ * @param clusterId ID of the cluster to generate the stack pointers for
+ * @param sp The memory address that serves as a base for the stack pointer
+ * @param[in] stack_size An array containing the requested stack sizes in Bytes.
+ *    Must reference an array whose length matches the number of cores in the specified cluster.
+ * @param[out] stack_ptr An array to hold the generated stack pointers.
+ *    Must reference an array whose length matches the number of cores in the specified cluster.
+ *
+ * @returns The pointer to the end of available memory after allocating all stacks.
+ */
+void *generate_snitchCluster_SPs(uint8_t clusterId, void *sp, uint32_t *stack_size,
+                                 void **stack_ptr) {
+    for (uint32_t core_id = 0; core_id < _chimera_numCores[clusterId]; core_id++) {
+        // Align to 16 Byte boundaries
+        sp = (void *)((uintptr_t)sp & ~(uintptr_t)0xFUL);
+        // set stack pointer
+        stack_ptr[core_id] = sp;
+        // subtract the required amount of stack
+        sp -= stack_size[core_id];
+    }
+    return sp;
+}
+
+/**
+ * @brief Generate the stack pointers for all cores a given cluster using the given stack size
+ *    equal for all cores. The stack pointers are generated compliant to the RISCV-ABI
+ *    and are aligned to 16-Byte boundaries and assumed to grow downwards.
+ *
+ * @param clusterId ID of the cluster to generate the stack pointers for
+ * @param sp The memory address that serves as a base for the stack pointer
+ * @param stack_size The stack size per core in the cluster in bytes.
+ * @param[out] stack_ptr An array to hold the generated stack pointers.
+ *    Must reference an array whose length matches the number of cores in the specified cluster.
+ *
+ * @returns The pointer to the end of available memory after allocating all stacks.
+ */
+void *generate_snitchCluster_SPs_uniform(uint8_t clusterId, void *sp, uint32_t stack_size,
+                                         void **stack_ptr) {
+    for (uint32_t core_id = 0; core_id < _chimera_numCores[clusterId]; core_id++) {
+        // Align to 16 Byte boundaries
+        sp = (void *)((uintptr_t)sp & ~(uintptr_t)0xFUL);
+        printf("Cluster %d Core %d stack @ %p with size: %d \n", clusterId, core_id, sp,
+               stack_size);
+        // set stack pointer
+        stack_ptr[core_id] = sp;
+        // subtract the required amount of stack
+        sp -= stack_size;
+    }
+    return sp;
 }
 
 /**
@@ -112,11 +185,9 @@ void offload_snitchCluster_core(void *function, void *args, void *stack_ptr, uin
     volatile void **snitchBootAddr =
         (volatile void **)(SOC_CTRL_BASE + CHIMERA_SNITCH_BOOT_ADDR_REG_OFFSET);
 
-    // Core with hartid 0 is CVA6's, thus we start with 1
-    uint32_t hartId = 1 + core_id;
-    for (uint32_t i = 0; i < clusterId; i++) {
-        hartId += _chimera_numCores[i];
-    }
+    uint32_t hartId = _get_hart_id(clusterId, core_id);
+
+    printf("Offloading to core %d in cluster %d with hartid %d\n", core_id, clusterId, hartId);
 
     *snitchBootAddr = _generate_trampoline(hartId, function, args, stack_ptr);
 
@@ -132,24 +203,23 @@ void offload_snitchCluster_core(void *function, void *args, void *stack_ptr, uin
  *
  * @param function Function pointer to offload
  * @param args Arguments to pass to the function
- * @param stack_ptr Stack pointer for the core
+ * @param stack_ptr Array containing the stack pointers for the cores. The length must equal the
+ * number of cores in the cluster
  * @param clusterId ID of the cluster to offload to
  */
-void offload_snitchCluster(void *function, void *args, void *stack_ptr, uint8_t clusterId) {
+void offload_snitchCluster(void *function, void *args, void **stack_ptr, uint8_t clusterId) {
     volatile void **snitchBootAddr =
         (volatile void **)(SOC_CTRL_BASE + CHIMERA_SNITCH_BOOT_ADDR_REG_OFFSET);
 
-    // Core with hartid 0 is CVA6's, thus we start with 1
-    uint32_t hartId = 1;
-    for (uint32_t i = 0; i < clusterId; i++) {
-        hartId += _chimera_numCores[i];
-    }
+    uint32_t hartId = _get_hart_id(clusterId, 0);
+
+    printf("Offloading to all cores in cluster %d starting at hartid %d\n", clusterId, hartId);
 
     // Check if the cluster is busy
     wait_snitchCluster_busy(clusterId);
 
     for (uint32_t i = 0; i < _chimera_numCores[clusterId]; i++) {
-        *snitchBootAddr = _generate_trampoline(hartId, function, args, stack_ptr);
+        *snitchBootAddr = _generate_trampoline(hartId + i, function, args, stack_ptr[i]);
         // Send interrupt to the core
         volatile uint32_t *interruptTarget = ((uint32_t *)CLINT_CTRL_BASE) + hartId + i;
         *interruptTarget = 1;
@@ -241,11 +311,6 @@ uint32_t wait_snitchCluster_return(uint8_t clusterId) {
     return retVal;
 }
 
-/** @}
- *  @} */ // end defgroup hal_snitchcluster
-
-/// @cond DOXYGEN_SHOULD_SKIP_THIS
-
 static int snitchcluster_open(chi_device_t *dev) {
     (void)dev;
     return 0;
@@ -263,11 +328,16 @@ static ssize_t snitchcluster_read(chi_device_t *dev, void *buf, uint32_t len,
     return -1;
 }
 
-chi_device_api_t snitchcluster_api = {
-    .open = snitchcluster_open,
-    .close = snitchcluster_close,
-    .read = snitchcluster_read,
-    .write = (ssize_t (*)(chi_device_t *, const void *, uint32_t,
-                          chi_device_callback_t))offload_snitchCluster};
-
+// VIVIANEP: Need to skip doxygen generation for these functions
+// to avoid duplicated defintion errors in the generated documentation
+/// @cond DOXYGEN_SHOULD_SKIP_THIS
+// const chi_device_api_t default_snitchcluster_api = {
+//     .open = snitchcluster_open,
+//     .close = snitchcluster_close,
+//     .read = snitchcluster_read
+//     .write = (ssize_t (*)(chi_device_t *, const void *, uint32_t,
+//                           chi_device_callback_t))offload_snitchCluster
+// };
 /// @endcond
+
+/** @} */ // End of drivers_snitch_cluster group

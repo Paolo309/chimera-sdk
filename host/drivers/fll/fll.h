@@ -9,12 +9,10 @@
 #include <stdint.h>
 
 /**
- * \addtogroup drivers
- * @{
  * \defgroup drivers_fll FLL Driver
- * @ingroup hal
- * @{
+ * @ingroup drivers
  * @brief FLL driver implementation for Chimera-SDK.
+ * @{
  *
  */
 

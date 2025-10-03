@@ -100,13 +100,51 @@ struct chi_interface_api {
                      chi_interface_callback_t cb);
 };
 
+/**
+ * @brief Wrapper functions for interface operations.
+ * These functions call the corresponding function pointers
+ * in the chi_interface_api structure.
+ *
+ * @param iface Pointer to the interface instance
+ * @return int Return 0 on success, negative value on failure.
+ */
 int iface_open(const chi_interface_t *iface);
 
+/**
+ * @brief Wrapper functions for interface operations.
+ * These functions call the corresponding function pointers
+ * in the chi_interface_api structure.
+ *
+ * @param iface Pointer to the interface instance.
+ * @return int Return 0 on success, negative value on failure.
+ */
 int iface_close(const chi_interface_t *iface);
 
+/**
+ * @brief Wrapper functions for interface operations.
+ * These functions call the corresponding function pointers
+ * in the chi_interface_api structure.
+ *
+ * @param iface  Pointer to the interface instance.
+ * @param buffer Pointer to the buffer for incoming data.
+ * @param size   Number of bytes to read.
+ * @param cb     Callback when the operation completes.
+ * @return ssize_t Number of bytes read on success, negative on failure.
+ */
 ssize_t iface_read(const chi_interface_t *iface, void *buffer, uint32_t size,
                    chi_interface_callback_t cb);
 
+/**
+ * @brief Wrapper functions for interface operations.
+ * These functions call the corresponding function pointers
+ * in the chi_interface_api structure.
+ *
+ * @param iface  Pointer to the interface instance.
+ * @param buffer Pointer to the data to send.
+ * @param size   Number of bytes to write.
+ * @param cb     Callback when the operation completes.
+ * @return ssize_t Number of bytes written on success, negative on failure.
+ */
 ssize_t iface_write(const chi_interface_t *iface, const void *buffer, uint32_t size,
                     chi_interface_callback_t cb);
 

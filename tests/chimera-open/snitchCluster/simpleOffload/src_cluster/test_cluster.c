@@ -62,5 +62,32 @@ int32_t testReturn(void *args) {
         return -1;
     }
 
+    snrt_l1_start_addr();
+
+    snrt_cls_base_addr();
+
+    extern volatile uint32_t __tdata_start, __tdata_end;
+    extern volatile uint32_t __tbss_start, __tbss_end;
+
+    size_t size;
+    volatile uint32_t tls_ptr;
+
+    // To avoid contentions in main memory, and take advantage of the
+    // bandwidth of the DMA, the DM core initializes the TLS section
+    // for every core in a cluster.
+    if (snrt_is_dm_core()) {
+        size = (size_t)(&__tdata_end) - (size_t)(&__tdata_start);
+
+        // First initialize the DM core's .tdata section from main memory
+        asm volatile("mv %0, tp" : "=r"(tls_ptr) : :);
+        snrt_dma_start_1d((void *)tls_ptr, (void *)(&__tdata_start), size);
+
+        snrt_dma_wait_all();
+    }
+
+    snrt_cluster_hw_barrier();
+
+    // *(volatile uint32_t *)(long)(0x03004000) = 'a';
+
     return TESTVAL;
 }

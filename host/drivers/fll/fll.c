@@ -22,12 +22,10 @@
 // #include "interrupt_api.h"
 
 /**
- * \addtogroup drivers
- * @{
  * \defgroup drivers_fll FLL Driver
- * @ingroup hal
- * @{
+ * @ingroup drivers
  * @brief FLL driver implementation for Chimera-SDK.
+ * @{
  *
  */
 
@@ -63,4 +61,3 @@ void setFllFreq(volatile uint32_t *fllPtr, uint32_t mult, uint32_t div) {
 }
 
 /** @} */ // End of drivers_fll group
-/** @} */ // End of drivers group

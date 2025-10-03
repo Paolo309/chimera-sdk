@@ -1,8 +1,8 @@
 # Enable verbose output for the linker
-# add_link_options("-Wl,--verbose")
+add_link_options("-Wl,--verbose")
 
 # Enable verbose output for the compiler
-# add_compile_options("-v")
+add_compile_options("-v")
 
 add_compile_options(
     "-Wall"

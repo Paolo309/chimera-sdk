@@ -58,12 +58,13 @@ ExternalProject_Add(
     SOURCE_DIR ${PICOLIBC_SRC_DIR}
     BINARY_DIR ${PICOLIBC_BUILD_DIR}
     INSTALL_DIR ${PICOLIBC_INSTALL_DIR}
-    CONFIGURE_COMMAND meson setup ${PICOLIBC_BUILD_DIR} ${PICOLIBC_SRC_DIR} --cross-file ${PICOLIBC_CROSS_FILE} -D multilib-list=rv32im/ilp32,rv32imafd/ilp32d --prefix ${PICOLIBC_INSTALL_DIR} --default-library=static
+    # CONFIGURE_COMMAND meson setup ${PICOLIBC_BUILD_DIR} ${PICOLIBC_SRC_DIR} --cross-file ${PICOLIBC_CROSS_FILE} -D multilib-list=rv32im/ilp32,rv32imafd/ilp32d --prefix ${PICOLIBC_INSTALL_DIR} --default-library=static
+    CONFIGURE_COMMAND meson setup ${PICOLIBC_BUILD_DIR} ${PICOLIBC_SRC_DIR} --cross-file ${PICOLIBC_CROSS_FILE} -D multilib-list=rv32im/ilp32 --prefix ${PICOLIBC_INSTALL_DIR} --default-library=static
     BUILD_COMMAND ninja -C ${PICOLIBC_BUILD_DIR}
     INSTALL_COMMAND ninja -C ${PICOLIBC_BUILD_DIR} install
     BUILD_BYPRODUCTS
-        ${PICOLIBC_INSTALL_DIR}/lib/rv32im/ilp32/libc.a
-        ${PICOLIBC_INSTALL_DIR}/lib/rv32imafd/ilp32d/libc.a
+    ${PICOLIBC_INSTALL_DIR}/lib/rv32im/ilp32/libc.a
+    # ${PICOLIBC_INSTALL_DIR}/lib/rv32imafd/ilp32d/libc.a
     LOG_CONFIGURE ON
     # LOG_BUILD ON
     LOG_INSTALL ON
@@ -76,7 +77,7 @@ set(PICOLIBC_TARGET picolibc)
 ################################################################################
 add_library(picolibc_host STATIC IMPORTED GLOBAL)
 
-if ("${ISA_HOST}" MATCHES "rv32im")
+if("${ISA_HOST}" MATCHES "rv32im")
     message(STATUS "[CHIMERA-SDK] Picolibc Host         : rv32im/ilp32")
     set_target_properties(picolibc_host PROPERTIES
         IMPORTED_LOCATION "${PICOLIBC_INSTALL_DIR}/lib/rv32im/ilp32/libc.a"
@@ -91,23 +92,29 @@ add_dependencies(picolibc_host picolibc)
 ################################################################################
 # Snitch Picolibc Library
 ################################################################################
-add_library(picolibc_cluster_snitch STATIC IMPORTED GLOBAL)
+# Check if ISA_CLUSTER_SNITCH is set
 
-if ("${ISA_CLUSTER_SNITCH}" MATCHES "rv32im")
-    if ("${ISA_CLUSTER_SNITCH}" MATCHES "fd")
-        message(STATUS "[CHIMERA-SDK] Picolibc Snitch       : rv32imafd/ilp32d")
-        set_target_properties(picolibc_cluster_snitch PROPERTIES
-            IMPORTED_LOCATION "${PICOLIBC_INSTALL_DIR}/lib/rv32imafd/ilp32d/libc.a"
-        )
-    else()
+if(${ISA_CLUSTER_SNITCH} STREQUAL "NONE")
+    return()
+else()
+    add_library(picolibc_cluster_snitch STATIC IMPORTED GLOBAL)
+
+    if("${ISA_CLUSTER_SNITCH}" MATCHES "rv32im")
+        # if ("${ISA_CLUSTER_SNITCH}" MATCHES "fd")
+        #     message(STATUS "[CHIMERA-SDK] Picolibc Snitch       : rv32imafd/ilp32d")
+        #     set_target_properties(picolibc_cluster_snitch PROPERTIES
+        #         IMPORTED_LOCATION "${PICOLIBC_INSTALL_DIR}/lib/rv32imafd/ilp32d/libc.a"
+        #     )
+        # else()
         message(STATUS "[CHIMERA-SDK] Picolibc Snitch       : rv32im/ilp32")
         set_target_properties(picolibc_cluster_snitch PROPERTIES
             IMPORTED_LOCATION "${PICOLIBC_INSTALL_DIR}/lib/rv32im/ilp32/libc.a"
         )
+        # endif()
+    else()
+        message(FATAL_ERROR "[CHIMERA-SDK] Unsupported ISA_CLUSTER_SNITCH for picolibc: ${ISA_CLUSTER_SNITCH}.")
     endif()
-else()
-message(FATAL_ERROR "[CHIMERA-SDK] Unsupported ISA_CLUSTER_SNITCH for picolibc: ${ISA_CLUSTER_SNITCH}.")
-endif()
 
-add_dependencies(picolibc_cluster_snitch picolibc)
+    add_dependencies(picolibc_cluster_snitch picolibc)
+endif()
 

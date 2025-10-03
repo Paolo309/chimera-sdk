@@ -7,4 +7,3 @@
 
 add_subdirectory(simpleOffload)
 add_subdirectory(simpleITA)
-add_subdirectory(dualBinary)

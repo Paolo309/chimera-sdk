@@ -20,14 +20,14 @@ endif()
 
 message(STATUS "[CHIMERA-SDK] TARGET_PLATFORM       : ${TARGET_PLATFORM}")
 
-if (TARGET_PLATFORM STREQUAL "chimera-host")
+if(TARGET_PLATFORM STREQUAL "chimera-host")
   add_subdirectory(chimera-host)
 endif()
 
-if (TARGET_PLATFORM STREQUAL "chimera-open")
+if(TARGET_PLATFORM STREQUAL "chimera-open")
   add_subdirectory(chimera-open)
 endif()
 
-if (TARGET_PLATFORM STREQUAL "chimera-convolve")
+if(TARGET_PLATFORM STREQUAL "chimera-convolve")
   add_subdirectory(chimera-convolve)
 endif()

@@ -25,7 +25,7 @@ set(CMAKE_C_ABI_COMPILED "False")
 
 # Enable WHOLE_ARCHIVE feature
 set(CMAKE_LINK_LIBRARY_USING_WHOLE_ARCHIVE
-"-Wl,--whole-archive <LIBRARY> -Wl,--no-whole-archive"
+    "-Wl,--whole-archive <LIBRARY> -Wl,--no-whole-archive"
 )
 set(CMAKE_LINK_LIBRARY_USING_WHOLE_ARCHIVE_SUPPORTED True)
 
@@ -45,7 +45,7 @@ string(REGEX MATCH "^[0-9]+" LLVM_VERSION_MAJOR ${LLVM_VERSION})
 string(REGEX MATCH "[0-9]+$" LLVM_VERSION_MINOR ${LLVM_VERSION})
 string(REGEX MATCH "[0-9]+$" LLVM_VERSION_PATCH ${LLVM_VERSION})
 
-if (LLVM_VERSION_MAJOR LESS 16)
+if(LLVM_VERSION_MAJOR LESS 16)
     message(STATUS "[CHIMERA-SDK] Disable linker relaxation for LLVM < 16")
     set(CMAKE_ALT_C_OPTIONS "-mno-relax")
     set(CMAKE_ALT_LINK_OPTIONS "-Wl,--no-relax")

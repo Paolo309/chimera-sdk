@@ -11,5 +11,5 @@ for TARGET in "${TARGETS[@]}"; do
         -D SIMULATION_BACKEND=RTL \
         -B build-"$TARGET"
     cmake --build build-"$TARGET" -j -t clean
-    cmake --build build-"$TARGET" -j
+    cmake --build build-"$TARGET" -j 1
 done

@@ -6,6 +6,13 @@
 
 #include "interface_api.h"
 
+/**
+ * \defgroup hal_interface HAL Communication Interface
+ * @ingroup hal
+ * @brief Communication interfaces (UART, SPI, …) in Chimera‑SDK.
+ * @{
+ */
+
 int iface_open(const chi_interface_t *iface) {
     if (!iface || !iface->api || !iface->api->open) {
         return -1;
@@ -35,3 +42,5 @@ ssize_t iface_write(const chi_interface_t *iface, const void *buffer, uint32_t s
     }
     return iface->api->write(iface, buffer, size, cb);
 }
+
+/** @} */ // end defgroup hal_interface

@@ -6,14 +6,18 @@
 # Viviane Potocnik <vivianep@iis.ee.ethz.ch>
 # Philip Wiese <wiesep@iis.ee.ethz.ch>
 
+message(STATUS "[CHIMERA-SDK] ABI                   : ${ABI}")
+message(STATUS "[CHIMERA-SDK] ISA_HOST              : ${ISA_HOST}")
+message(STATUS "[CHIMERA-SDK] ISA_CLUSTER_SNITCH    : ${ISA_CLUSTER_SNITCH}")
 
 ################################################################################
 # Host Runtime Library                                                         #
 ################################################################################
 add_library(runtime_host STATIC)
 
+# WIESEP: To avoid compatibility issues, link against RV32IM libraries
 target_link_directories(runtime_host PUBLIC
-  ${TOOLCHAIN_DIR}/lib/clang/${LLVM_VERSION}/lib/baremetal/${ISA_HOST_BASE}
+  ${TOOLCHAIN_DIR}/lib/clang/${LLVM_VERSION}/lib/baremetal/rv32im
 )
 
 # WIESEP: Make sure picolibc exists before building the host runtime for the header files
@@ -52,7 +56,7 @@ target_compile_options(runtime_host
   PUBLIC
   --target=riscv32-unknown-elf
   -march=${ISA_HOST}
-  -mabi=${ABI_HOST}
+  -mabi=${ABI}
 )
 
 # WIESEP: Export the target specific linkerscript
@@ -61,10 +65,25 @@ target_link_options(runtime_host
   -L${CMAKE_CURRENT_LIST_DIR}
   -Tlink.ld
   --target=riscv32-unknown-elf
-  -march=${ISA_HOST}
-  -mabi=${ABI_HOST}
+  -mabi=${ABI}
   -nostartfiles
   -ffreestanding
+)
+
+################################################################################
+# Trampoline Functions
+################################################################################
+add_library(trampoline_rv32im STATIC)
+target_compile_options(trampoline_rv32im
+  PRIVATE
+  -O2
+  --target=riscv32-unknown-elf
+  -march=rv32im
+  -mabi=${ABI}
+)
+target_include_directories(trampoline_rv32im
+  PRIVATE
+  ${CMAKE_CURRENT_LIST_DIR}/inc
 )
 
 ################################################################################
@@ -72,10 +91,10 @@ target_link_options(runtime_host
 ################################################################################
 add_library(runtime_cluster_snitch STATIC)
 
+# WIESEP: To avoid compatibility issues, link against RV32IM libraries
 target_link_directories(runtime_cluster_snitch PUBLIC
-  ${TOOLCHAIN_DIR}/lib/clang/${LLVM_VERSION}/lib/baremetal/${ISA_CLUSTER_SNITCH_BASE}
+  ${TOOLCHAIN_DIR}/lib/clang/${LLVM_VERSION}/lib/baremetal/rv32im
 )
-
 # WIESEP: Make sure picolibc exists before building the host runtime for the header files
 add_dependencies(runtime_cluster_snitch picolibc)
 
@@ -83,6 +102,9 @@ add_dependencies(runtime_cluster_snitch picolibc)
 target_include_directories(runtime_cluster_snitch
   PUBLIC
   ${CMAKE_CURRENT_LIST_DIR}/inc
+  ${CMAKE_CURRENT_LIST_DIR}/inc/cfg
+  ${CMAKE_CURRENT_LIST_DIR}/inc/regs
+  ${CMAKE_CURRENT_LIST_DIR}/inc/addr_maps
 )
 
 # WIESEP: Do not export optimization flags
@@ -95,15 +117,16 @@ target_compile_options(runtime_cluster_snitch
   PUBLIC
   --target=riscv32-unknown-elf
   -march=${ISA_CLUSTER_SNITCH}
-  -mabi=${ABI_CLUSTER_SNITCH}
+  -mabi=${ABI}
 )
 
 # WIESEP: Expose common link option
 target_link_options(runtime_cluster_snitch
   PUBLIC
+  -L${CMAKE_CURRENT_LIST_DIR}
+  -Tlink.ld
   --target=riscv32-unknown-elf
-  -march=${ISA_CLUSTER_SNITCH}
-  -mabi=${ABI_CLUSTER_SNITCH}
+  -mabi=${ABI}
   -nostartfiles
   -ffreestanding
 )

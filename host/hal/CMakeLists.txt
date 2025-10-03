@@ -18,5 +18,6 @@ target_include_directories(hal_host
 
 target_link_libraries(hal_host
   PUBLIC
-    "$<LINK_LIBRARY:WHOLE_ARCHIVE,runtime_host>"
+  picolibc_host
 )
+

@@ -20,7 +20,7 @@ target_compile_options(${TEST_NAME}_host
   PRIVATE
   -O2
 )
-target_link_libraries(${TEST_NAME}_host PUBLIC runtime_host trampoline_rv32im)
+target_link_libraries(${TEST_NAME}_host PUBLIC runtime_host picolibc_host trampoline_rv32im)
 
 ######## CLUSTER Code ##########################################################
 file(GLOB_RECURSE TEST_SNITCH_SRCS
@@ -30,7 +30,6 @@ file(GLOB_RECURSE TEST_SNITCH_SRCS
 add_library(${TEST_NAME}_cluster OBJECT ${TEST_SNITCH_SRCS})
 target_include_directories(${TEST_NAME}_cluster PUBLIC include)
 
-# WIESEP: Set the correct ISA and ABI for the cluster
 # WIESEP: Use -O1 optimization level for the cluster code otherwise the code currently breaks.
 target_compile_options(${TEST_NAME}_cluster
   PRIVATE

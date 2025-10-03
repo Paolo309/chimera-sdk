@@ -19,16 +19,6 @@ set(CMAKE_C_COMPILER_WORKS 1)
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 # include(cmake/debug.cmake)
 
-# WIESEP: It is important to set the ISA and ABI for the host and the cluster snitch
-set(ABI_HOST ilp32)
-set(ABI_CLUSTER_SNITCH ilp32)
-set(ISA_CLUSTER_SNITCH rv32ima_xdma)
-set(ISA_HOST rv32imc)
-
-# extract base ISA (e.g. rv32ima from rv32ima_xdma)
-string(REGEX MATCH "^[a-z0-9]+" ISA_HOST_BASE ${ISA_HOST})
-string(REGEX MATCH "^[a-z0-9]+" ISA_CLUSTER_SNITCH_BASE ${ISA_CLUSTER_SNITCH})
-
 # Set host-specific flags
 set(HOST_ARCH "riscv32")
 set(HOST_FAMILY "riscv32")
@@ -42,13 +32,15 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
+include("targets/${TARGET_PLATFORM}/config.cmake")
+
+# extract base ISA (e.g. rv32ima from rv32ima_xdma)
+string(REGEX MATCH "^[a-z0-9]+" ISA_HOST_BASE ${ISA_HOST})
+string(REGEX MATCH "^[a-z0-9]+" ISA_CLUSTER_SNITCH_BASE ${ISA_CLUSTER_SNITCH})
+
 project(chimera-sdk LANGUAGES C ASM)
 
-message(STATUS "[CHIMERA-SDK] ABI_HOST              : ${ABI_HOST}")
-message(STATUS "[CHIMERA-SDK] ISA_HOST              : ${ISA_HOST}")
-message(STATUS "[CHIMERA-SDK] ABI_CLUSTER_SNITCH    : ${ABI_CLUSTER_SNITCH}")
-message(STATUS "[CHIMERA-SDK] ISA_CLUSTER_SNITCH    : ${ISA_CLUSTER_SNITCH}")
-if (${DISASSEMBLE_LIBRARIES})
+if(${DISASSEMBLE_LIBRARIES})
   message(STATUS "[CHIMERA-SDK] DISASSEMBLE_LIBRARIES : ON")
 else()
   message(STATUS "[CHIMERA-SDK] DISASSEMBLE_LIBRARIES : OFF")
@@ -71,7 +63,6 @@ set(error_messages "")
 # - runtime_cluster_snitch
 add_subdirectory(targets)
 
-
 # VIVIANEP: Include the picolibc library
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/picolibc.cmake)
 
@@ -90,7 +81,7 @@ if(NOT SIMULATION_BACKEND IN_LIST VALID_SIMULATION_BACKEND)
   list(APPEND error_messages "[CHIMERA-SDK] Invalid SIMULATION_BACKEND: ${SIMULATION_BACKEND}")
   list(APPEND error_messages "[CHIMERA-SDK] Available options for SIMULATION_BACKEND are:")
   foreach(mode IN LISTS VALID_SIMULATION_BACKEND)
-      list(APPEND error_messages " - ${mode}")
+    list(APPEND error_messages " - ${mode}")
   endforeach()
 else()
   message(STATUS "[CHIMERA-SDK] Hardware Backend      : ${SIMULATION_BACKEND}")
@@ -115,11 +106,11 @@ endif()
 set(SOC_MODEL_BINARY "chim.bin" CACHE STRING "Path to the simulation binary")
 set(PRELOAD_MODE "0" CACHE STRING "Preload mode for simulation")
 
-if (TEST_MODE STREQUAL "compile")
+if(TEST_MODE STREQUAL "compile")
   add_subdirectory(tests)
 endif()
 
-if (TEST_MODE STREQUAL "simulation")
+if(TEST_MODE STREQUAL "simulation")
   enable_testing()
 
   if(NOT EXISTS ${SOC_MODEL_BINARY})
@@ -127,7 +118,7 @@ if (TEST_MODE STREQUAL "simulation")
   endif()
 
   # Convert PRELOAD_MODE to integer
-  if ("${PRELOAD_MODE}" MATCHES "^[0-9]+$")
+  if("${PRELOAD_MODE}" MATCHES "^[0-9]+$")
     set(PRELOAD_MODE_INT ${PRELOAD_MODE})
   else()
     message(FATAL_ERROR "PRELOAD_MODE must be an integer.")
@@ -135,4 +126,4 @@ if (TEST_MODE STREQUAL "simulation")
 
   message(STATUS "[CHIMERA-SDK] SoC Model Binary      : ${SOC_MODEL_BINARY}")
   message(STATUS "[CHIMERA-SDK] Preload Mode          : ${PRELOAD_MODE}")
-  endif()
+endif()

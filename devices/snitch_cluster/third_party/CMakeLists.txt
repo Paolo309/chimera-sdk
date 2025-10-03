@@ -5,30 +5,8 @@
 # Philip Wiese <wiesep@iis.ee.ethz.ch>
 
 set(SNITCH_ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/snitch-sdk)
-
-# -----------------------------------------------------------------------------
-# Device Settings
-# -----------------------------------------------------------------------------
-include(${SNITCH_ROOT_DIR}/cmake/tools/SnitchUtilities.cmake)
-
-set(SN_DEVICE "snitch_cluster")
-set(SN_CFG_DIR "${SNITCH_ROOT_DIR}/devices/${SN_DEVICE}/cfg")
-set(SN_HW_CFG "${SN_CFG_DIR}/default.hjson" CACHE STRING
-    "Path to the hardware configuration file. Use fdiv.hjson etc. to override the default.")
-set(SN_TEMPLATE_DIR "${SNITCH_ROOT_DIR}/devices/${SN_DEVICE}/templates")
 set(SN_DEPS_DIR "${SNITCH_ROOT_DIR}/deps" CACHE STRING "Directory for external dependencies")
-set(SN_GENERATED_DIR "${CMAKE_CURRENT_BINARY_DIR}/generated" CACHE PATH "Directory for generated headers")
 
-file(MAKE_DIRECTORY "${SN_GENERATED_DIR}")
-
-# message(STATUS "[SNITCH-SDK] Using configuration file: ${SN_HW_CFG}")
-message(STATUS "[SNITCH-SDK]  Configuration File    : ${SN_HW_CFG}")
-message(STATUS "[SNITCH-SDK]  Generated Files       : ${SN_GENERATED_DIR}")
-# -----------------------------------------------------------------------------
-# Generate Hardware Headers
-# -----------------------------------------------------------------------------
-generate_all_headers()
-add_dependencies(runtime_cluster_snitch generate_all_headers)
 
 # -----------------------------------------------------------------------------
 # Add Subdirectories for Runtime Components
@@ -66,16 +44,15 @@ set_source_files_properties(
 )
 
 target_include_directories(runtime_cluster_snitch
-PUBLIC
+    PUBLIC
     ${SN_DEPS_DIR}
-    ${SN_GENERATED_DIR}
     ${SNITCH_ROOT_DIR}/target/common/inc
     ${SNITCH_ROOT_DIR}/core/inc
     ${SNITCH_ROOT_DIR}/omp/inc
 )
 
 target_include_directories(runtime_cluster_snitch
-PRIVATE
+    PRIVATE
     ${SNITCH_ROOT_DIR}/core/src
     ${SNITCH_ROOT_DIR}/omp/src
 )
@@ -87,5 +64,3 @@ if(SIMULATION_BACKEND STREQUAL "RTL")
 
     message(ERROR "[SNITCH-SDK] Unsupported backend: ${SIMULATION_BACKEND}")
 endif()
-
-add_dependencies(runtime_cluster_snitch generate_all_headers)
