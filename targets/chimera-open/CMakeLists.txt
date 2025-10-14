@@ -6,10 +6,6 @@
 # Viviane Potocnik <vivianep@iis.ee.ethz.ch>
 # Philip Wiese <wiesep@iis.ee.ethz.ch>
 
-message(STATUS "[CHIMERA-SDK] ABI                   : ${ABI}")
-message(STATUS "[CHIMERA-SDK] ISA_HOST              : ${ISA_HOST}")
-message(STATUS "[CHIMERA-SDK] ISA_CLUSTER_SNITCH    : ${ISA_CLUSTER_SNITCH}")
-
 ################################################################################
 # Host Runtime Library                                                         #
 ################################################################################
@@ -17,7 +13,7 @@ add_library(runtime_host STATIC)
 
 # WIESEP: To avoid compatibility issues, link against RV32IM libraries
 target_link_directories(runtime_host PUBLIC
-  ${TOOLCHAIN_DIR}/lib/clang/${LLVM_VERSION}/lib/baremetal/rv32im
+  ${TOOLCHAIN_DIR}/lib/clang/${LLVM_VERSION}/lib/baremetal/${COMPILERRT_HOST}
 )
 
 # WIESEP: Make sure picolibc exists before building the host runtime for the header files
@@ -56,7 +52,7 @@ target_compile_options(runtime_host
   PUBLIC
   --target=riscv32-unknown-elf
   -march=${ISA_HOST}
-  -mabi=${ABI}
+  -mabi=${ABI_HOST}
 )
 
 # WIESEP: Export the target specific linkerscript
@@ -65,7 +61,7 @@ target_link_options(runtime_host
   -L${CMAKE_CURRENT_LIST_DIR}
   -Tlink.ld
   --target=riscv32-unknown-elf
-  -mabi=${ABI}
+  -mabi=${ABI_HOST}
   -nostartfiles
   -ffreestanding
 )
@@ -79,7 +75,7 @@ target_compile_options(trampoline_rv32im
   -O2
   --target=riscv32-unknown-elf
   -march=rv32im
-  -mabi=${ABI}
+  -mabi=${ABI_HOST}
 )
 target_include_directories(trampoline_rv32im
   PRIVATE
@@ -93,7 +89,7 @@ add_library(runtime_cluster_snitch STATIC)
 
 # WIESEP: To avoid compatibility issues, link against RV32IM libraries
 target_link_directories(runtime_cluster_snitch PUBLIC
-  ${TOOLCHAIN_DIR}/lib/clang/${LLVM_VERSION}/lib/baremetal/rv32im
+  ${TOOLCHAIN_DIR}/lib/clang/${LLVM_VERSION}/lib/baremetal/${COMPILERRT_CLUSTER_SNITCH}
 )
 # WIESEP: Make sure picolibc exists before building the host runtime for the header files
 add_dependencies(runtime_cluster_snitch picolibc)
@@ -117,7 +113,7 @@ target_compile_options(runtime_cluster_snitch
   PUBLIC
   --target=riscv32-unknown-elf
   -march=${ISA_CLUSTER_SNITCH}
-  -mabi=${ABI}
+  -mabi=${ABI_CLUSTER_SNITCH}
 )
 
 # WIESEP: Expose common link option
@@ -126,7 +122,7 @@ target_link_options(runtime_cluster_snitch
   -L${CMAKE_CURRENT_LIST_DIR}
   -Tlink.ld
   --target=riscv32-unknown-elf
-  -mabi=${ABI}
+  -mabi=${ABI_CLUSTER_SNITCH}
   -nostartfiles
   -ffreestanding
 )

@@ -40,6 +40,15 @@ string(REGEX MATCH "^[a-z0-9]+" ISA_CLUSTER_SNITCH_BASE ${ISA_CLUSTER_SNITCH})
 
 project(chimera-sdk LANGUAGES C ASM)
 
+message(STATUS "[CHIMERA-SDK] ABI_HOST              : ${ABI_HOST}")
+message(STATUS "[CHIMERA-SDK] ABI_CLUSTER_SNITCH    : ${ABI_CLUSTER_SNITCH}")
+message(STATUS "[CHIMERA-SDK] ISA_HOST              : ${ISA_HOST}")
+message(STATUS "[CHIMERA-SDK] ISA_CLUSTER_SNITCH    : ${ISA_CLUSTER_SNITCH}")
+message(STATUS "[CHIMERA-SDK] Picolibc Host         : ${PICOLIB_HOST}")
+message(STATUS "[CHIMERA-SDK] Picolibc Snitch       : ${PICOLIB_CLUSTER_SNITCH}")
+message(STATUS "[CHIMERA-SDK] Compiler RT Host      : ${COMPILERRT_HOST}")
+message(STATUS "[CHIMERA-SDK] Compiler RT Snitch    : ${COMPILERRT_CLUSTER_SNITCH}")
+
 if(${DISASSEMBLE_LIBRARIES})
   message(STATUS "[CHIMERA-SDK] DISASSEMBLE_LIBRARIES : ON")
 else()

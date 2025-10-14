@@ -3,11 +3,6 @@ Host Runtime API Reference
 
 The Low-Level (LL) API provides a direct interface to the hardware of the SoC and is designed to be close to the hardware, providing a thin abstraction layer to make the hardware easier to use. It contains all runtime drivers and peripheral interfaces.
 
-It consists of drivers, devices and targets.
-
-
-Drivers
-=======
 
 .. toctree::
    :maxdepth: 1
@@ -16,11 +11,4 @@ Drivers
    api_ll_drivers_clint
    api_ll_drivers_cluster
    api_ll_drivers_fll
-
-
-Runtime Functions
-=================
-
-.. doxygengroup:: runtime
-   :content-only:
-   :project: chimera_ll
+   api_ll_runtime_alloc

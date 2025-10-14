@@ -6,9 +6,6 @@
 # Viviane Potocnik <vivianep@iis.ee.ethz.ch>
 # Philip Wiese <wiesep@iis.ee.ethz.ch>
 
-message(STATUS "[CHIMERA-SDK] ABI                   : ${ABI}")
-message(STATUS "[CHIMERA-SDK] ISA_HOST              : ${ISA_HOST}")
-
 ################################################################################
 # Host Runtime Library                                                         #
 ################################################################################
@@ -55,7 +52,7 @@ target_compile_options(runtime_host
   PUBLIC
   --target=riscv32-unknown-elf
   -march=${ISA_HOST}
-  -mabi=${ABI}
+  -mabi=${ABI_HOST}
 )
 
 # WIESEP: Export the target specific linkerscript
@@ -64,7 +61,7 @@ target_link_options(runtime_host
   -L${CMAKE_CURRENT_LIST_DIR}
   -Tlink.ld
   --target=riscv32-unknown-elf
-  -mabi=${ABI}
+  -mabi=${ABI_HOST}
   -nostartfiles
   -ffreestanding
 )
