@@ -18,5 +18,5 @@
 // Import HAL Headers
 
 int main() {
-    return 88;
+    return 0;
 }

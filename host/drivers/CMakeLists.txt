@@ -10,6 +10,7 @@ set(DRIVER_MAPPINGS
     chimera-convolve:cluster,uart_apb,clint32,fll
     chimera-open:cluster,uart_apb,clint32
     chimera-host:uart_apb,clint32
+    chimera-mxita:cluster,uart_apb,clint32
 )
 
 # Call the macro

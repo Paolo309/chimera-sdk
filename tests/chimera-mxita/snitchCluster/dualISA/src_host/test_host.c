@@ -3,11 +3,11 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 // Moritz Scherer <scheremo@iis.ee.ethz.ch>
-// Viviane Potocnik <vivianep@iis.ee.ethz.ch>
 
 // Include Standard Libraries
 
 // Include Application Headers
+#include "test_host.h"
 
 // Include Target Specific Headers
 
@@ -18,5 +18,5 @@
 // Import HAL Headers
 
 int main() {
-    return 88;
+    return 1;
 }

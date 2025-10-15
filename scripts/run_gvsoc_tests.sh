@@ -32,6 +32,7 @@ NC='\033[0m' # No Color
 declare -A TARGET_TESTS
 TARGET_TESTS[chimera-open]="test_host_returnZero test_host_printf test_host_alloc test_snitchCluster_simpleOffload"
 TARGET_TESTS[chimera-host]="test_host_returnZero"
+TARGET_TESTS[chimera-mxita]="test_host_returnZero test_host_printf test_host_alloc test_snitchCluster_simpleOffload"
 
 # Function to print usage
 print_usage() {
@@ -43,7 +44,7 @@ Run GVSoC tests locally for the Chimera-SDK project.
 OPTIONS:
     -g, --gvsoc-path PATH      Path to GVSoC binary (default: $DEFAULT_GVSOC_PATH)
     -t, --target TARGET        Target platform to build and test (default: $DEFAULT_TARGET)
-                               Available targets: chimera-open, chimera-host, chimera-convolve
+                               Available targets: chimera-open, chimera-host, chimera-convolve, chimera-mxita
     -c, --cmake PATH           Path to CMake binary (default: $DEFAULT_CMAKE)
     -T, --toolchain-dir PATH   Path to LLVM toolchain directory (default: $DEFAULT_TOOLCHAIN_DIR)
     -b, --build-only           Only build tests, don't run them

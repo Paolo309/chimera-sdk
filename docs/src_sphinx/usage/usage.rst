@@ -51,6 +51,7 @@ The SDK supports multiple targets, each with a different configuration. The avai
 - ``chimera-convolve``: Target for the CONVOLVE project.
 - ``chimera-host``: Target with a single host core without clusters.
 - ``chimera-open``: Default target with multiple clusters.
+- ``chimera-mxita``: Target for the MXITA project.
 
 Testing
 -------
