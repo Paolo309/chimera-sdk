@@ -22,4 +22,5 @@ target_sources(runtime_host PRIVATE
   src/stdio.c
   src/uart.c
   src/clint.c
+  src/log.c
 )

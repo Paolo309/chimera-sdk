@@ -57,6 +57,8 @@ target_compile_options(runtime_host
   -mabi=${ABI_HOST}
 )
 
+target_compile_definitions(runtime_host PUBLIC TARGET_PLATFORM_CHIMERA_CONVOLVE)
+
 # WIESEP: Export the target specific linkerscript
 target_link_options(runtime_host
   PUBLIC
@@ -79,6 +81,10 @@ target_compile_options(trampoline_rv32im
   -march=rv32im
   -mabi=${ABI_ABI_HOST}
 )
+
+target_compile_definitions(trampoline_rv32im PUBLIC TARGET_PLATFORM_CHIMERA_CONVOLVE)
+
+
 target_include_directories(trampoline_rv32im
   PRIVATE
   ${CMAKE_CURRENT_LIST_DIR}/inc
@@ -111,6 +117,9 @@ target_compile_options(runtime_cluster_snitch
   PRIVATE
   -O2
 )
+
+target_compile_definitions(runtime_cluster_snitch PUBLIC TARGET_PLATFORM_CHIMERA_CONVOLVE)
+
 
 target_compile_options(runtime_cluster_snitch
   PUBLIC

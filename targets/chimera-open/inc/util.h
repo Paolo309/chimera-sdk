@@ -230,6 +230,30 @@ static inline void *gprw(void *gp) {
  */
 #define MIN(a, b) (((a) <= (b)) ? (a) : (b))
 
+/**
+ * @brief Returns the maximum of two values.
+ * @param a First value.
+ * @param b Second value.
+ * @return The larger of the two values.
+ */
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+
+
+/**
+ * @brief Clamps a value between a low and high bound.
+ *
+ * If the value is less than the low bound, the low bound is returned.
+ * If the value is greater than the high bound, the high bound is returned.
+ * Otherwise, the value itself is returned.
+ *
+ * @param x Value to clamp.
+ * @param low Lower bound.
+ * @param high Upper bound.
+ * @return The clamped value.
+ */
+#define CLAMP(x, low, high)                                                    \
+  (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
+
 /** @} */
 
 /** @} */ // End of targets_chimera_host_util group

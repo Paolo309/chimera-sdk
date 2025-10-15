@@ -1,17 +1,16 @@
-// Copyright 2024 ETH Zurich and University of Bologna.
+// Copyright 2025 ETH Zurich and University of Bologna.
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 //
-// Moritz Scherer <scheremo@iis.ee.ethz.ch>
+// Philip Wiese <wiesep@iis.ee.ethz.ch>
 
 // Include Standard Libraries
 #include <stdio.h>
 #include <string.h>
-#include <stdint.h>
 #include <math.h>
+#include <stdint.h>
 
 // Include Application Headers
-#include "test_cluster.h"
 
 // Include Target Specific Headers
 
@@ -21,14 +20,7 @@
 
 // Import HAL Headers
 
-/**
- * @brief Main function of the cluster test.
- *
- * @return int Return 0 if the test was successful, -1 otherwise.
- */
-int32_t testReturn(void *args) {
-    (void)args;
-
+int main(void) {
     // memcpy
     volatile int32_t src[4] = {1, 2, 3, 4}; // Use volatile to prevent optimization
     volatile int32_t dst[4] = {0, 0, 0, 0};
@@ -44,5 +36,5 @@ int32_t testReturn(void *args) {
     testval = sinf(testval) + cosf(testval) + tanf(testval); // Use volatile to prevent optimization
     testval = logf(testval) + expf(testval);                 // Use volatile to prevent optimization
 
-    return 1;
+    return 0;
 }

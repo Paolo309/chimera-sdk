@@ -25,9 +25,11 @@ if(TARGET_PLATFORM STREQUAL "chimera-host")
 endif()
 
 if(TARGET_PLATFORM STREQUAL "chimera-open")
+  add_compile_definitions(TARGET_PLATFORM_CHIMERA_OPEN)
   add_subdirectory(chimera-open)
 endif()
 
 if(TARGET_PLATFORM STREQUAL "chimera-convolve")
+  add_compile_definitions(TARGET_PLATFORM_CHIMERA_CONVOLVE)
   add_subdirectory(chimera-convolve)
 endif()

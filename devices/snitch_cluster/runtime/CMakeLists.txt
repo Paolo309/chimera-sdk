@@ -10,7 +10,7 @@
 file(GLOB C_SOURCES
   "snitch_cluster_start.S"
   "snitch_cluster_start.c"
-  "putchar.c"
+  "putc.c"
 )
 
 target_sources(runtime_cluster_snitch PRIVATE ${C_SOURCES})

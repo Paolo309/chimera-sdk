@@ -35,6 +35,7 @@ void offload_snitchCluster_core(void *function, void *args, void *stack_ptr, uin
                                 uint32_t core_id);
 
 // Synchronization
+int snitchCluster_busy(uint8_t clusterId);
 void wait_snitchCluster_busy(uint8_t clusterId);
 uint32_t wait_snitchCluster_return(uint8_t clusterId);
 

@@ -2,12 +2,14 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 //
-// Moritz Scherer <scheremo@iis.ee.ethz.ch>
+// Viviane Potocnik <vivianep@iis.ee.ethz.ch>
+
+#pragma once
 
 // Include Standard Libraries
-
-// Include Application Headers
-#include "test_host.h"
+#include <stdint.h>
+#include <stdbool.h>
+#include <stdio.h>
 
 // Include Target Specific Headers
 
@@ -15,8 +17,4 @@
 
 // Include Runtime Headers
 
-// Import HAL Headers
-
-int main() {
-    return 1;
-}
+int printf_log(const char *fmt, ...);

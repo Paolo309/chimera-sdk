@@ -48,6 +48,8 @@ target_compile_options(runtime_host
   -O2
 )
 
+target_compile_definitions(runtime_host PUBLIC TARGET_PLATFORM_CHIMERA_HOST)
+
 target_compile_options(runtime_host
   PUBLIC
   --target=riscv32-unknown-elf

@@ -18,6 +18,7 @@
 
 // Include Runtime Headers
 #include "util.h"
+#include "alloc.h"
 
 // Import HAL Headers
 

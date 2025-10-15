@@ -6,6 +6,17 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
+
+extern FILE *const snrt_stdin;
+extern FILE *const snrt_stdout;
+extern FILE *const snrt_stderr;
+
+// Retarget printf to stdio of snitch cluster
+int snrt_printf_log(const char *fmt, ...);
+int snrt_printf(const char *fmt, ...);
+
+#define printf snrt_printf_log
 
 #include "config.h"
 
@@ -20,6 +31,7 @@
 // Snitch cluster specific
 #include "snitch_cluster_defs.h"
 #include "snitch_cluster_memory.h"
+#include "snitch_cluster_start.h"
 
 // Implementation
 #include "alloc.h"

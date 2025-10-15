@@ -16,4 +16,9 @@ static inline volatile uint32_t *snrt_exit_code_destination() {
 }
 #endif
 
+void snrt_init();
+void snrt_init_cls();
+void snrt_init_bss();
+void snrt_printf_init();
+
 #include "start.h"

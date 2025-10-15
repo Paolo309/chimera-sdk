@@ -227,17 +227,12 @@ void offload_snitchCluster(void *function, void *args, void **stack_ptr, uint8_t
 }
 
 /**
- * @brief Blocking wait for the cluster to become idle.
- * The function busy waits until the cluster is ready.
+ * @brief Check if the cluster is busy.
  *
- * @warning In the current Snitch bootrom implementation each cores clears the busy flag as soon as
- * is returned. Hence the busy flag does not reflect the actual status of the cluster.
- *
- * @todo Fix the bootrom after adding synchornization primitives for the Snitch cores.
- *
- * @param clusterId ID of the cluster to wait for.
+ * @param clusterId ID of the cluster to check
+ * @return int Return 1 if the cluster is busy, 0 if it is idle, -1 if the cluster ID is invalid
  */
-void wait_snitchCluster_busy(uint8_t clusterId) {
+int snitchCluster_busy(uint8_t clusterId) {
     volatile int32_t *busy_ptr;
 
     switch (clusterId) {
@@ -256,10 +251,26 @@ void wait_snitchCluster_busy(uint8_t clusterId) {
     case 4:
         busy_ptr = (volatile int32_t *)(SOC_CTRL_BASE + CHIMERA_CLUSTER_4_BUSY_REG_OFFSET);
         break;
+    default:
+        return -1;
     }
 
-    while (*busy_ptr == 1) {
-    }
+    return *busy_ptr;
+}
+
+/**
+ * @brief Blocking wait for the cluster to become idle.
+ * The function busy waits until the cluster is ready.
+ *
+ * @warning In the current Snitch bootrom implementation each cores clears the busy flag as soon as
+ * is returned. Hence the busy flag does not reflect the actual status of the cluster.
+ *
+ * @todo Fix the bootrom after adding synchornization primitives for the Snitch cores.
+ *
+ * @param clusterId ID of the cluster to wait for.
+ */
+void wait_snitchCluster_busy(uint8_t clusterId) {
+    while (snitchCluster_busy(clusterId) == 1);
     // TODO: temporary race condition fix
     for (int i = 0; i < 100; i++) {
         // NOP

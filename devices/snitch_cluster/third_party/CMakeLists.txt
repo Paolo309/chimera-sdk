@@ -62,5 +62,5 @@ if(SIMULATION_BACKEND STREQUAL "RTL")
     #     ${SNITCH_ROOT_DIR}/target/rtl/inc
     # )
 
-    message(ERROR "[SNITCH-SDK] Unsupported backend: ${SIMULATION_BACKEND}")
+    message(WARNING "[SNITCH-SDK] Unsupported backend: ${SIMULATION_BACKEND}")
 endif()

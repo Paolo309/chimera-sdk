@@ -67,8 +67,8 @@ ExternalProject_Add(
     BUILD_COMMAND ninja -C ${PICOLIBC_BUILD_DIR}
     INSTALL_COMMAND ninja -C ${PICOLIBC_BUILD_DIR} install
     BUILD_BYPRODUCTS
-    ${PICOLIBC_INSTALL_DIR}/lib/rv32im/ilp32/libc.a
-    # ${PICOLIBC_INSTALL_DIR}/lib/rv32imafd/ilp32d/libc.a
+    ${PICOLIBC_INSTALL_DIR}/lib/${PICOLIB_HOST}/libc.a
+    ${PICOLIBC_INSTALL_DIR}/lib/${PICOLIB_CLUSTER_SNITCH}/libc.a
     # LOG_CONFIGURE ON
     # LOG_BUILD ON
     LOG_INSTALL ON
