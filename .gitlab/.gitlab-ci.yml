@@ -33,7 +33,7 @@ test:
       - TARGET: [chimera-host]
         TEST: [test_host_returnZero]
       - TARGET: [chimera-mxita]
-        TEST: [test_host_returnZero, test_snitchCluster_simpleOffload]
+        TEST: [test_snitchCluster_mxita]
   script:
     - !reference [.setup, script]
     - $CMAKE -DTARGET_PLATFORM=$TARGET -DTOOLCHAIN_DIR=$LLVM_INSTALL_PATH -B build

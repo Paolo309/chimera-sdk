@@ -5,7 +5,7 @@
 # Moritz Scherer <scheremo@iis.ee.ethz.ch>
 # Philip Wiese <wiesep@iis.ee.ethz.ch>
 
-set(TEST_NAME test_snitchCluster_dualISA)
+set(TEST_NAME test_snitchCluster_mxita)
 
 ######## HOST Code #############################################################
 file(GLOB_RECURSE TEST_HOST_SRCS
@@ -30,6 +30,7 @@ file(GLOB_RECURSE TEST_SNITCH_SRCS
 add_library(${TEST_NAME}_cluster OBJECT ${TEST_SNITCH_SRCS})
 target_include_directories(${TEST_NAME}_cluster PUBLIC include)
 
+# WIESEP: Set the correct ISA and ABI for the cluster
 target_compile_options(${TEST_NAME}_cluster
   PRIVATE
   -O2
@@ -44,3 +45,4 @@ add_chimera_test(
 # WIESEP: Link the host and cluster code to the test executable
 target_link_libraries(${TEST_NAME} PUBLIC ${TEST_NAME}_host)
 target_link_libraries(${TEST_NAME} PUBLIC ${TEST_NAME}_cluster)
+

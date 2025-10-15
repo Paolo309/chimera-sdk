@@ -32,7 +32,7 @@ NC='\033[0m' # No Color
 declare -A TARGET_TESTS
 TARGET_TESTS[chimera-open]="test_host_returnZero test_host_printf test_host_alloc test_snitchCluster_simpleOffload"
 TARGET_TESTS[chimera-host]="test_host_returnZero"
-TARGET_TESTS[chimera-mxita]="test_host_returnZero test_host_printf test_host_alloc test_snitchCluster_simpleOffload"
+TARGET_TESTS[chimera-mxita]="test_snitchCluster_mxita"
 
 # Function to print usage
 print_usage() {
