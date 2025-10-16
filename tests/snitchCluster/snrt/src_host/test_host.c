@@ -26,6 +26,7 @@
 extern uintptr_t volatile tohost, fromhost;
 
 int main() {
+
     void *stack_cluster0_ptr[CLUSTER_0_NUMCORES];
     generate_snitchCluster_SPs_uniform(0, (void *)STACK_ADDRESS_4, 0x2000, stack_cluster0_ptr);
 

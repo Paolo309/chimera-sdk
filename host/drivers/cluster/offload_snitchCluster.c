@@ -328,6 +328,86 @@ uint32_t wait_snitchCluster_return(uint8_t clusterId) {
     return retVal;
 }
 
+/**
+ * @brief Set Clock Gating on specified cluster
+ * @param clusterId ID of the cluster to set clock gating for
+ * @param enable true to enable clock gating, false to disable
+ *
+ */
+void set_snitchCluster_clockGating(uint8_t clusterId, bool enable) {
+
+    switch (clusterId) {
+    case 0:
+        *(volatile uint8_t *)(SOC_CTRL_BASE + CHIMERA_CLUSTER_0_CLK_GATE_EN_REG_OFFSET) = enable;
+        break;
+    case 1:
+        *(volatile uint8_t *)(SOC_CTRL_BASE + CHIMERA_CLUSTER_1_CLK_GATE_EN_REG_OFFSET) = enable;
+        break;
+    case 2:
+        *(volatile uint8_t *)(SOC_CTRL_BASE + CHIMERA_CLUSTER_2_CLK_GATE_EN_REG_OFFSET) = enable;
+        break;
+    case 3:
+        *(volatile uint8_t *)(SOC_CTRL_BASE + CHIMERA_CLUSTER_3_CLK_GATE_EN_REG_OFFSET) = enable;
+        break;
+    case 4:
+        *(volatile uint8_t *)(SOC_CTRL_BASE + CHIMERA_CLUSTER_4_CLK_GATE_EN_REG_OFFSET) = enable;
+        break;
+    default:
+        break;
+    }
+}
+
+/**
+ * @brief Set Clock Gating on all clusters
+ * @param enable true to enable clock gating, false to disable
+ */
+void setAll_snitchCluster_clockGating(bool enable) {
+    *(volatile uint8_t *)(SOC_CTRL_BASE + CHIMERA_CLUSTER_0_CLK_GATE_EN_REG_OFFSET) = enable;
+    *(volatile uint8_t *)(SOC_CTRL_BASE + CHIMERA_CLUSTER_1_CLK_GATE_EN_REG_OFFSET) = enable;
+    *(volatile uint8_t *)(SOC_CTRL_BASE + CHIMERA_CLUSTER_2_CLK_GATE_EN_REG_OFFSET) = enable;
+    *(volatile uint8_t *)(SOC_CTRL_BASE + CHIMERA_CLUSTER_3_CLK_GATE_EN_REG_OFFSET) = enable;
+    *(volatile uint8_t *)(SOC_CTRL_BASE + CHIMERA_CLUSTER_4_CLK_GATE_EN_REG_OFFSET) = enable;
+}
+
+/**
+ * @brief Set Soft Reset on specified cluster
+ * @param clusterId ID of the cluster to set soft reset for
+ * @param enable true to enable soft reset, false to disable
+ */
+void set_snitchCluster_reset(uint8_t clusterId, bool enable) {
+    switch (clusterId) {
+    case 0:
+        *(volatile uint8_t *)(SOC_CTRL_BASE + CHIMERA_RESET_CLUSTER_0_REG_OFFSET) = enable;
+        break;
+    case 1:
+        *(volatile uint8_t *)(SOC_CTRL_BASE + CHIMERA_RESET_CLUSTER_1_REG_OFFSET) = enable;
+        break;
+    case 2:
+        *(volatile uint8_t *)(SOC_CTRL_BASE + CHIMERA_RESET_CLUSTER_2_REG_OFFSET) = enable;
+        break;
+    case 3:
+        *(volatile uint8_t *)(SOC_CTRL_BASE + CHIMERA_RESET_CLUSTER_3_REG_OFFSET) = enable;
+        break;
+    case 4:
+        *(volatile uint8_t *)(SOC_CTRL_BASE + CHIMERA_RESET_CLUSTER_4_REG_OFFSET) = enable;
+        break;
+    default:
+        break;
+    }
+}
+
+/**
+ * @brief Set Soft Reset on all clusters
+ * @param enable true to enable soft reset, false to disable
+ */
+void setAll_snitchCluster_reset(bool enable) {
+    *(volatile uint8_t *)(SOC_CTRL_BASE + CHIMERA_RESET_CLUSTER_0_REG_OFFSET) = enable;
+    *(volatile uint8_t *)(SOC_CTRL_BASE + CHIMERA_RESET_CLUSTER_1_REG_OFFSET) = enable;
+    *(volatile uint8_t *)(SOC_CTRL_BASE + CHIMERA_RESET_CLUSTER_2_REG_OFFSET) = enable;
+    *(volatile uint8_t *)(SOC_CTRL_BASE + CHIMERA_RESET_CLUSTER_3_REG_OFFSET) = enable;
+    *(volatile uint8_t *)(SOC_CTRL_BASE + CHIMERA_RESET_CLUSTER_4_REG_OFFSET) = enable;
+}
+
 static int snitchcluster_open(chi_device_t *dev) {
     (void)dev;
     return 0;
