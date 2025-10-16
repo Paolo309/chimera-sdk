@@ -25,7 +25,6 @@ static inline void snrt_init_tls() {
 
         // First initialize the DM core's .tdata section from main memory
         asm volatile("mv %0, tp" : "=r"(tls_ptr) : :);
-
         snrt_dma_start_1d((void *)tls_ptr, (void *)(&__tdata_start), size);
 
         // Then initialize all other cores' .tdata sections from the DM
@@ -51,7 +50,7 @@ static inline void snrt_init_tls() {
 #endif
 
 #ifdef SNRT_INIT_BSS
-void snrt_init_bss() {
+static inline void snrt_init_bss() {
     extern volatile uint32_t __bss_start, __bss_end;
 
     // Only one core needs to perform the initialization
@@ -64,7 +63,7 @@ void snrt_init_bss() {
 #endif
 
 #ifdef SNRT_INIT_CLS
-void snrt_init_cls() {
+static inline void snrt_init_cls() {
     extern volatile uint32_t __cdata_start, __cdata_end;
     extern volatile uint32_t __cbss_start, __cbss_end;
 
@@ -111,7 +110,9 @@ __attribute__((noinline)) void snrt_exit(int exit_code) {
 #endif
 #endif /* SNRT_CRT0_EXIT */
 
-void snrt_init() {
+
+void snrt_main() {
+    int exit_code = 0;
 
 #ifdef SNRT_CRT0_CALLBACK0
     snrt_crt0_callback0();
@@ -120,8 +121,6 @@ void snrt_init() {
 #ifdef SNRT_INIT_TLS
     snrt_init_tls();
 #endif
-
-    return;
 
 #ifdef SNRT_CRT0_CALLBACK1
     snrt_crt0_callback1();
@@ -165,13 +164,6 @@ void snrt_init() {
 #ifdef SNRT_CRT0_CALLBACK5
     snrt_crt0_callback5();
 #endif
-}
-
-
-void snrt_main() {
-    int exit_code = 0;
-
-    snrt_init();
 
 #ifdef SNRT_INVOKE_MAIN
     extern int main();

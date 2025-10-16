@@ -5,7 +5,7 @@
 # Moritz Scherer <scheremo@iis.ee.ethz.ch>
 # Philip Wiese <wiesep@iis.ee.ethz.ch>
 
-set(TEST_NAME test_snitchCluster_simpleOffload)
+set(TEST_NAME test_snitchCluster_matmul)
 
 ######## HOST Code #############################################################
 file(GLOB_RECURSE TEST_HOST_SRCS

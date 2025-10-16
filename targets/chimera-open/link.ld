@@ -42,8 +42,10 @@ SECTIONS {
   /* Thread Local Storage sections */
   .tdata    :
   {
+    . = ALIGN(32);
     __tdata_start = .;
     *(.tdata .tdata.* .gnu.linkonce.td.*)
+    . = ALIGN(32);
     __tdata_end = .;
   } > memisl
 
@@ -65,13 +67,13 @@ SECTIONS {
       KEEP(*(.cdata .cdata.*))
     . = ALIGN(32);
     __cdata_end = .;
-  } > memisl
-  /* } > l1 AT > memisl */
+  /* } > memisl */
+  } > l1_c4 AT > memisl
   /* Provide symbols for the load address (LMA) of the .cdata section so
      runtime code can copy the initialized contents from flash/main memory
      instead of using the VMA which points into L1. */
-  /* __cdata_lma_start = LOADADDR(.cdata); */
-  /* __cdata_lma_end = LOADADDR(.cdata) + SIZEOF(.cdata); */
+  __cdata_lma_start = LOADADDR(.cdata);
+  __cdata_lma_end = LOADADDR(.cdata) + SIZEOF(.cdata);
 
   .cbss :
   {
@@ -80,7 +82,7 @@ SECTIONS {
     KEEP(*(.cbss .cbss.*))
     . = ALIGN(32);
     __cbss_end = .;
-  } > memisl
+  } > l1_c4
   /* } > l1 AT > memisl */
 
 

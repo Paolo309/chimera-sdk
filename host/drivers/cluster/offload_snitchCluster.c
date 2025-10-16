@@ -83,10 +83,12 @@ static void *_generate_trampoline(uint32_t hartID, void (*function)(void *), voi
     _trampoline_stack[trampoline_idx] = stack;
 
     // Store captured arguments in a persistent context if needed
+    #ifdef TRACE
     printf("  Function  : %p @ %p\n", function, &_trampoline_function[trampoline_idx]);
     printf("  Args      : %p @ %p\n", args, &_trampoline_args[trampoline_idx]);
     printf("  Stack     : %p @ %p\n", stack, &_trampoline_stack[trampoline_idx]);
     printf("  Trampoline: %p\n", _trampoline);
+    #endif
     return _trampoline;
 }
 
@@ -160,8 +162,10 @@ void *generate_snitchCluster_SPs_uniform(uint8_t clusterId, void *sp, uint32_t s
     for (uint32_t core_id = 0; core_id < _chimera_numCores[clusterId]; core_id++) {
         // Align to 16 Byte boundaries
         sp = (void *)((uintptr_t)sp & ~(uintptr_t)0xFUL);
+        #ifdef TRACE
         printf("Cluster %d Core %d stack @ %p with size: %d \n", clusterId, core_id, sp,
                stack_size);
+        #endif
         // set stack pointer
         stack_ptr[core_id] = sp;
         // subtract the required amount of stack
@@ -213,7 +217,9 @@ void offload_snitchCluster(void *function, void *args, void **stack_ptr, uint8_t
 
     uint32_t hartId = _get_hart_id(clusterId, 0);
 
+    #ifdef TRACE
     printf("Offloading to all cores in cluster %d starting at hartid %d\n", clusterId, hartId);
+    #endif
 
     // Check if the cluster is busy
     wait_snitchCluster_busy(clusterId);
