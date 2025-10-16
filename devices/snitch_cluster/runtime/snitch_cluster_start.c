@@ -110,7 +110,6 @@ __attribute__((noinline)) void snrt_exit(int exit_code) {
 #endif
 #endif /* SNRT_CRT0_EXIT */
 
-
 void snrt_main() {
     int exit_code = 0;
 

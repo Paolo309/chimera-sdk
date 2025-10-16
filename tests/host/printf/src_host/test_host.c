@@ -35,10 +35,10 @@ void setGPIO0_UART() {
 #endif
 
 int main(void) {
-    #ifdef TARGET_PLATFORM_CHIMERA_CONVOLVE
+#ifdef TARGET_PLATFORM_CHIMERA_CONVOLVE
     // Connect UART to GPIO 0
     setGPIO0_UART();
-    #endif
+#endif
 
     volatile int a = 42;
     printf("Chimera is alive! %d\n", a);

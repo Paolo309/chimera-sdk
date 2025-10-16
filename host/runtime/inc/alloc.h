@@ -79,8 +79,8 @@ void *memory_island_malloc(size_t size);
 /**
  * @brief Frees memory previously allocated by memory_island_malloc().
  *
- * This function returns a memory block to the free list, making it available for future allocations.
- * The memory block is added to the head of the freelist for efficient reuse.
+ * This function returns a memory block to the free list, making it available for future
+ * allocations. The memory block is added to the head of the freelist for efficient reuse.
  *
  * @param ptr Pointer to the memory block to free. If NULL, the function does nothing.
  *
@@ -115,7 +115,8 @@ void *memory_island_calloc(size_t num, size_t size);
  * The contents are unchanged up to the minimum of the old and new sizes.
  * If the new size is larger, the additional memory is uninitialized.
  *
- * @param ptr Pointer to the memory block to reallocate. If NULL, behaves like memory_island_malloc().
+ * @param ptr Pointer to the memory block to reallocate. If NULL, behaves like
+ * memory_island_malloc().
  * @param size New size in bytes. If 0 and ptr is not NULL, behaves like memory_island_free().
  * @return Pointer to the reallocated memory block, or NULL if reallocation fails.
  *

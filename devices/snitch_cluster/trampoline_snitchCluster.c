@@ -44,22 +44,22 @@ void __attribute__((naked)) _trampoline() {
         "lw sp, 0(a0)\n"                // Load stack pointer from the computed address
 
         // // Adjust stack pointer for thread-local data (.tdata section)
-        "la t1, __tdata_end\n"      // Load end address of .tdata section into t0
-        "la t2, __tdata_start\n"    // Load start address of .tdata section into t1
-        "sub t1, t1, t2\n"          // Compute size of .tdata section
-        "sub sp, sp, t1\n"          // Allocate space for .tdata on stack
+        "la t1, __tdata_end\n"   // Load end address of .tdata section into t0
+        "la t2, __tdata_start\n" // Load start address of .tdata section into t1
+        "sub t1, t1, t2\n"       // Compute size of .tdata section
+        "sub sp, sp, t1\n"       // Allocate space for .tdata on stack
 
         // Adjust stack pointer for thread-local BSS (.tbss section)
-        "la t1, __tbss_end\n"       // Load end address of .tbss section into t0
-        "la t2, __tbss_start\n"     // Load start address of .tbss section into t1
-        "sub t1, t1, t2\n"          // Compute size of .tbss section
-        "sub sp, sp, t1\n"          // Allocate space for .tbss on stack
+        "la t1, __tbss_end\n"   // Load end address of .tbss section into t0
+        "la t2, __tbss_start\n" // Load start address of .tbss section into t1
+        "sub t1, t1, t2\n"      // Compute size of .tbss section
+        "sub sp, sp, t1\n"      // Allocate space for .tbss on stack
 
         // Set thread pointer (tp) to stack pointer
-        "mv tp, sp\n"               // Move stack pointer to thread pointer
+        "mv tp, sp\n" // Move stack pointer to thread pointer
 
         // Aliogn stack pointer to 16-byte boundary after allocating TLS
-        "andi sp, sp, -0xF\n"       // Ensure stack pointer is 16-Byte aligned (ABI)
+        "andi sp, sp, -0xF\n" // Ensure stack pointer is 16-Byte aligned (ABI)
 
         // Load function pointer and arguments
         "la a0, _trampoline_function\n" // Load address of _trampoline_function

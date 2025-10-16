@@ -120,9 +120,9 @@ void MatMul_unrolled_2x2_parallel_s8_rv32im(int8_t const *__restrict__ pSrcA,
  * These are assigned on the DM (data-mover) core and then used by compute
  * cores.
  */
-int8_t __attribute__((__section__(".cbss"))) *DeeployNetwork_input_0;
-int8_t __attribute__((__section__(".cbss"))) *DeeployNetwork_input_1;
-int32_t __attribute__((__section__(".cbss"))) *DeeployNetwork_output_0;
+int8_t __attribute__((__section__(".cbss"))) * DeeployNetwork_input_0;
+int8_t __attribute__((__section__(".cbss"))) * DeeployNetwork_input_1;
+int32_t __attribute__((__section__(".cbss"))) * DeeployNetwork_output_0;
 
 /*
  * Accumulator for ops-per-cycle computed by each compute core and atomically
@@ -138,10 +138,9 @@ static __attribute__((__section__(".cdata"))) float ops_per_cycle = 0.0f;
 int32_t testReturn(void *args) {
 
     /*
-    * Initialize the Snitch runtime.
-    */
+     * Initialize the Snitch runtime.
+     */
     snrt_init();
-
 
     /*
      * DM core (data master) performs data setup and L1 allocation. This keeps

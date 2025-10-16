@@ -34,10 +34,10 @@ void setGPIO0_UART() {
 #endif
 
 int main(void) {
-    #ifdef TARGET_PLATFORM_CHIMERA_CONVOLVE
+#ifdef TARGET_PLATFORM_CHIMERA_CONVOLVE
     // Connect UART to GPIO 0
     setGPIO0_UART();
-    #endif
+#endif
 
     // 1. Configure the UART from defaults
     uart_config_t uart_cfg = default_uart_cfg;
