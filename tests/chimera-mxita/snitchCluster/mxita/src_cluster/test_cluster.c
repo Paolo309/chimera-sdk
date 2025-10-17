@@ -21,6 +21,9 @@
 // Include Runtime Headers
 #include "snrt.h"
 
+// Include MXITA Headers
+#include "data.h"
+
 /**
  * @brief Interrupt handler for the cluster, which clears the interrupt flag for the current hart.
  *
@@ -48,6 +51,60 @@ __attribute__((naked)) void clusterInterruptHandler() {
     );
 }
 
+#define M 8
+#define N 4
+#define P 4
+#define Q 4
+
+// #define HWPE_ADDR_BASE 0x30000000
+#define HWPE_ADDR_BASE 0x30040000
+#define MXITA_TRIGGER 0x00
+#define MXITA_ACQUIRE 0x04
+#define HWPE_MXIP_ADDR (HWPE_ADDR_BASE + 0x58)
+#define HWPE_WRITE(value, offset) *(int *)(HWPE_ADDR_BASE + offset) = value
+#define HWPE_READ(offset) *(int *)(HWPE_ADDR_BASE + offset)
+
+// MXITA HWPE cfg
+void mxita_cfg(uint8_t k_size, uint16_t l_size, uint8_t lk_size, unsigned int input_ptr, unsigned int weight_ptr, unsigned int output_ptr, unsigned int input_scale_ptr, unsigned int weight_scale_ptr) {
+  uint32_t l_dims_reg = 0;
+  uint32_t ctrl_stream_reg = 0;
+  l_dims_reg = ((uint32_t)lk_size << 24) | ((uint32_t)l_size << 8) | ((uint32_t)k_size << 0);
+  HWPE_WRITE(input_ptr, 0x20);
+  HWPE_WRITE(weight_ptr, 0x24);
+  HWPE_WRITE(output_ptr, 0x28);
+  HWPE_WRITE(l_dims_reg, 0x2C);
+  HWPE_WRITE(0, 0x30); // reg_ctrl_stream
+  HWPE_WRITE(input_scale_ptr, 0x34);
+  HWPE_WRITE(weight_scale_ptr, 0x38);
+}
+
+static inline void hwpe_trigger_job() { HWPE_WRITE(0, MXITA_TRIGGER); }
+
+inline void snrt_hwpe_clr_mxip(uint32_t core_idx) {
+    * (volatile uint32_t*)HWPE_MXIP_ADDR = (1 << core_idx);
+}
+
+static inline int hwpe_acquire_job() { return HWPE_READ(MXITA_ACQUIRE); }
+
+int mxita_compare_float(float* dut_output, float* ref_output, int array_len){
+  int errors = 0;
+  for (int i = 0; i < array_len; i++){
+    if ((dut_output[i] / ref_output[i] < 0.99)  || (dut_output[i] / ref_output[i] > 1.01 )) {
+      errors += 1;
+    }
+  }
+  return errors;
+}
+
+volatile int status1;
+void *local_input_matrix;
+void *local_weight_matrix;
+void *local_input_scale;
+void *local_weight_scale;
+void *local_output_matrix;
+
+#define IRQ_M_ACC     20
+
 /**
  * @brief Main function of the cluster test.
  *
@@ -62,32 +119,85 @@ int32_t testReturn(void *args) {
         return -1;
     }
 
-    snrt_l1_start_addr();
+    uint32_t core_idx = snrt_cluster_core_idx();
 
-    snrt_cls_base_addr();
+    static volatile uint64_t prog_cycles = 0;
+    static volatile uint64_t mxita_cycles  = 0;
 
-    extern volatile uint32_t __tdata_start, __tdata_end;
-    extern volatile uint32_t __tbss_start, __tbss_end;
+    // Clear interrupt from host
+    snrt_int_clr_mcip();
 
-    size_t size;
-    volatile uint32_t tls_ptr;
+    // Enable accelerator interrupts
+    // snrt_interrupt_enable(IRQ_M_ACC);
+    // printf("IRQ_M_ACC: %d\n", IRQ_M_ACC);
 
-    // To avoid contentions in main memory, and take advantage of the
-    // bandwidth of the DMA, the DM core initializes the TLS section
-    // for every core in a cluster.
+    uint32_t NBYTES_IW_MAT = sizeof(int8_t);
+    uint32_t NBYTES_IW_SCALE = sizeof(uint8_t);
+    uint32_t NBYTES_OUT_MAT = sizeof(float);
+
+    // DEFAULT
+    uint8_t k_size = 8;
+    uint16_t l_size = 64;
+    uint8_t lk_size = 8;
+
+    // uint16_t input_mat_size = N*P*l_size*NBYTES_IW_MAT;
+    // uint16_t weight_mat_size = M*Q*l_size*NBYTES_IW_MAT;
+    // uint16_t input_scale_size = (N*P*lk_size*NBYTES_IW_SCALE < 512) ? 512 : N*P*lk_size*NBYTES_IW_SCALE;
+    // uint16_t weight_scale_size = (M*Q*lk_size*NBYTES_IW_SCALE < 512) ? 512 : M*Q*lk_size*NBYTES_IW_SCALE;
+    // uint16_t output_mat_size = M*N*P*Q*NBYTES_OUT_MAT;
+
+    argsStruct->mxita_return[core_idx].core_id = core_idx;
     if (snrt_is_dm_core()) {
-        size = (size_t)(&__tdata_end) - (size_t)(&__tdata_start);
+        // local_input_matrix = snrt_l1_alloc(input_mat_size);
+        // local_weight_matrix = snrt_l1_alloc(weight_mat_size);
+        // local_input_scale = snrt_l1_alloc(input_scale_size);
+        // local_weight_scale = snrt_l1_alloc(weight_scale_size);
+        // local_output_matrix = snrt_l1_alloc(output_mat_size);
 
-        // First initialize the DM core's .tdata section from main memory
-        asm volatile("mv %0, tp" : "=r"(tls_ptr) : :);
-        snrt_dma_start_1d((void *)tls_ptr, (void *)(&__tdata_start), size);
+        // snrt_dma_start_1d(local_input_matrix, input_matrix, input_mat_size);
+        // snrt_dma_start_1d(local_weight_matrix, weight_matrix, weight_mat_size);
+        // snrt_dma_start_1d(local_input_scale, input_scale, input_scale_size);
+        // snrt_dma_start_1d(local_weight_scale, weight_scale, weight_scale_size);
 
-        snrt_dma_wait_all();
+        // snrt_dma_wait_all();
+        
+        argsStruct->mxita_return[core_idx].is_dm_core = 1;
+    } else {
+        argsStruct->mxita_return[core_idx].is_dm_core = 0;
     }
 
     snrt_cluster_hw_barrier();
 
-    // *(volatile uint32_t *)(long)(0x03004000) = 'a';
+    if (core_idx == 2) {
+        argsStruct->mxita_return[core_idx].core_id = core_idx * 100;
+    }
 
-    return TESTVAL;
+    return 0;
 }
+
+// snrt_l1_start_addr();
+
+    // snrt_cls_base_addr();
+
+    // extern volatile uint32_t __tdata_start, __tdata_end;
+    // extern volatile uint32_t __tbss_start, __tbss_end;
+
+    // size_t size;
+    // volatile uint32_t tls_ptr;
+
+    // // To avoid contentions in main memory, and take advantage of the
+    // // bandwidth of the DMA, the DM core initializes the TLS section
+    // // for every core in a cluster.
+    // if (snrt_is_dm_core()) {
+    //     size = (size_t)(&__tdata_end) - (size_t)(&__tdata_start);
+
+    //     // First initialize the DM core's .tdata section from main memory
+    //     asm volatile("mv %0, tp" : "=r"(tls_ptr) : :);
+    //     snrt_dma_start_1d((void *)tls_ptr, (void *)(&__tdata_start), size);
+
+    //     snrt_dma_wait_all();
+    // }
+
+    // snrt_cluster_hw_barrier();
+
+    // // *(volatile uint32_t *)(long)(0x03004000) = 'a';

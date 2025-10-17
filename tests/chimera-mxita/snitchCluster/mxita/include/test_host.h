@@ -9,8 +9,16 @@
 
 #define TESTVAL 0x050CCE55
 
+#include "addr_maps/soc_addr_map.h"
+
+typedef struct {
+    unsigned int core_id;
+    unsigned int is_dm_core;
+} mxita_return_t;
+
 typedef struct {
     unsigned int value;
+    mxita_return_t mxita_return[CLUSTER_0_NUMCORES];
 } offloadArgs_t;
 
 #endif //_TEST_HOST_INCLUDE_GUARD_
