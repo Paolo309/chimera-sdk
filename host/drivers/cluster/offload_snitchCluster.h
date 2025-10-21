@@ -7,6 +7,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <stdbool.h>
 
 /**
  * \defgroup drivers_snitch_cluster Snitch Cluster Device Driver
@@ -33,6 +34,13 @@ void *generate_snitchCluster_SPs_uniform(uint8_t clusterId, void *sp, uint32_t s
 void offload_snitchCluster(void *function, void *args, void **stack_ptr, uint8_t clusterId);
 void offload_snitchCluster_core(void *function, void *args, void *stack_ptr, uint8_t clusterId,
                                 uint32_t core_id);
+
+
+void set_snitchCluster_reset(uint8_t clusterId, bool enable);
+void setAll_snitchCluster_reset(bool enable);
+void set_snitchCluster_clockGating(uint8_t clusterId, bool enable);
+void setAll_snitchCluster_clockGating(bool enable);
+
 
 // Synchronization
 int snitchCluster_busy(uint8_t clusterId);

@@ -8,7 +8,9 @@ set(OPENTITAN_BASE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/opentitan_peripherals)
 
 # Collect all source files
 file(GLOB_RECURSE C_SOURCES
-    "${OPENTITAN_BASE_DIR}/sw/device/lib/base/*.c"
+    "${OPENTITAN_BASE_DIR}/sw/device/lib/base/bitfield.c"
+    # "${OPENTITAN_BASE_DIR}/sw/device/lib/base/memory.c"
+    # "${OPENTITAN_BASE_DIR}/sw/device/lib/base/mmio.c"
     "${OPENTITAN_BASE_DIR}/sw/device/lib/base/internal/*.c"
     "${OPENTITAN_BASE_DIR}/sw/device/lib/dif/dif_gpio.c"
     "${OPENTITAN_BASE_DIR}/sw/device/lib/dif/dif_i2c.c"

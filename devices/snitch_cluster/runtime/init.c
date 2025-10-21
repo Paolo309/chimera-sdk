@@ -17,13 +17,14 @@ void snrt_init() {
     if (snrt_is_dm_core()) {
         // Preload cdata section from LMA to VMA
         size_t size = (size_t)(&__cdata_end) - (size_t)(&__cdata_start);
-        memcpy((void *)(&__cdata_start), (void *)(&__cdata_lma_start), size);
-        // snrt_dma_start_1d((void *)(&__cdata_start), (void *)(&__cdata_lma_start), size);
+        // memcpy((void *)(&__cdata_start), (void *)(&__cdata_lma_start), size);
+        snrt_dma_start_1d((void *)(&__cdata_start), (void *)(&__cdata_lma_start), size);
 
         // Clear the cbss section
         size = (size_t)(&__cbss_end) - (size_t)(&__cbss_start);
-        memset((void *)(&__cbss_start), 0, size);
-        // snrt_dma_start_1d((void *)(&__cbss_start), (void *)(snrt_zero_memory_ptr()), size);
+        // memset((void *)(&__cbss_start), 0, size);
+        snrt_dma_start_1d((void *)(&__cbss_start), (void *)(snrt_zero_memory_ptr()), size);
+        snrt_dma_wait_all();
     }
 
     /********** Thread Local Storage Initialization **********/
@@ -39,7 +40,7 @@ void snrt_init() {
     size_t size_tbss = (size_t)(&__tbss_end) - (size_t)(&__tbss_start);
     memset((void *)(tls_ptr + size_tdata), 0, size_tbss);
     // snrt_dma_start_1d((void *)(tls_ptr + (size_t)(&__tbss_start) - (size_t)(&__tdata_start)),
-    //                   (void *)(snrt_zero_memory_ptr()), size_tdata);
+                    //   (void *)(snrt_zero_memory_ptr()), size_tdata);
     // snrt_dma_wait_all();
 
     /********** Cluster Initialization **********/

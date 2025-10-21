@@ -20,9 +20,8 @@ int printf_log(const char *fmt, ...) {
 
     // Get core and cluster id
     int core_id = snrt_cluster_core_idx();
-    int cluster_id = snrt_cluster_idx();
 
-    fprintf(stdout, "[HOST ] ", cluster_id, core_id);
+    fprintf(stdout, "[HOST ] ");
 
     va_start(args, fmt);
     ret = vfprintf(stdout, fmt, args);

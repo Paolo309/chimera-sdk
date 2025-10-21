@@ -22,7 +22,7 @@
  * @{
  */
 
-#ifdef CHIMERA_SIMULATION_BACKEND_RTL
+#ifdef CHIMERA_SIMULATION_BACKEND_ASIC
 #ifdef CHIMERA_DRIVER_UART
 int uart_putc(char c, FILE *file) {
     (void)file;
@@ -36,6 +36,12 @@ int uart_putc(char c, FILE *file) {
     return -1;
 }
 #endif // CHIMERA_DRIVER_UART
+#elif CHIMERA_SIMULATION_BACKEND_RTL
+int uart_putc(char c, FILE *file) {
+    (void)c;
+    *(volatile uint32_t *)(long)(0x300010F0) = c;
+    return c;
+}
 #else  // CHIMERA_SIMULATION_BACKEND_GVSOC
 int uart_putc(char c, FILE *file) {
     (void)file;

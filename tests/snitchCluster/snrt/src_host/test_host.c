@@ -25,24 +25,34 @@
 
 extern uintptr_t volatile tohost, fromhost;
 
+#define CLUSTER 4
 int main() {
 
-    void *stack_cluster0_ptr[CLUSTER_0_NUMCORES];
-    generate_snitchCluster_SPs_uniform(0, (void *)STACK_ADDRESS_4, 0x2000, stack_cluster0_ptr);
+    void *stack_cluster_ptr[NUM_CLUSTER_CORES];
+    generate_snitchCluster_SPs_uniform(CLUSTER, (void *)STACK_ADDRESS_4, 0x2000, stack_cluster_ptr);
 
     setup_snitchCluster_interruptHandler(clusterInterruptHandler);
-    offload_snitchCluster(testReturn, NULL, stack_cluster0_ptr, 4);
+
+    set_snitchCluster_reset(CLUSTER, 0);
+    set_snitchCluster_clockGating(CLUSTER, 0);
+
+    offload_snitchCluster(testReturn, NULL, stack_cluster_ptr, CLUSTER);
 
     printf_log("Waiting for cluster to finish...\n");
 
     // Handle tohost/fromhost communication
-    while (snitchCluster_busy(4)) {
+    while (snitchCluster_busy(CLUSTER)) {
         // Wait for tohost to be set by the device
         if (tohost != 0) {
+            volatile uint32_t syscall_addr = tohost;
+
+            // Acknowledge tohost
+            tohost = 0;
+
             // printf("Host received tohost: %#x\n", tohost);
 
             // Cluster does tohost = (uintptr_t)buf->hdr.syscall_mem;
-            uint32_t *syscall_mem = (uint32_t *)tohost;
+            uint32_t *syscall_mem = (uint32_t *)syscall_addr;
 
             // printf("Host handling syscall %u: fd=%#x, buf=%p, len=%#x\n", syscall_mem[0],
             //        syscall_mem[1], (void *)syscall_mem[2], syscall_mem[3]);
@@ -53,16 +63,16 @@ int main() {
                 printf_log("Unknown syscall: %u\n", syscall_mem[0]);
             }
 
-            fromhost = tohost;
-            while (fromhost != 0);
-
-            // printf("Host finished syscall %u\n", syscall_mem[0]);
-            tohost = 0;
+            // Notify cluster that syscall is done
+            fromhost = syscall_addr;
         }
     }
 
-    uint32_t retVal = wait_snitchCluster_return(4);
+    uint32_t retVal = wait_snitchCluster_return(CLUSTER);
     retVal = retVal >> 1;
+
+    set_snitchCluster_clockGating(CLUSTER, 1);
+    set_snitchCluster_reset(CLUSTER, 1);
 
     printf_log("Returned from cluster: 0x%08x (%d)\n", retVal, retVal);
 

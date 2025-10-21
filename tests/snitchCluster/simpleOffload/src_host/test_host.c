@@ -29,8 +29,15 @@ int main() {
     generate_snitchCluster_SPs_uniform(0, (void *)STACK_ADDRESS_0, 0x2000, stack_cluster0_ptr);
 
     setup_snitchCluster_interruptHandler(clusterInterruptHandler);
+
+    set_snitchCluster_reset(0, 0);
+    set_snitchCluster_clockGating(0, 0);
+
     offload_snitchCluster(testReturn, &offloadArgs, stack_cluster0_ptr, 0);
     uint32_t retVal = wait_snitchCluster_return(0);
+
+    set_snitchCluster_clockGating(0, 1);
+    set_snitchCluster_reset(0, 1);
 
     printf("Returned value: 0x%08x (%d)\n", retVal, retVal);
     printf("Expected value: 0x%08x\n", (TESTVAL | 0x000000001));
