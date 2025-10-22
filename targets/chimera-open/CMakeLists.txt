@@ -11,7 +11,6 @@
 ################################################################################
 add_library(runtime_host STATIC)
 
-# WIESEP: To avoid compatibility issues, link against RV32IM libraries
 target_link_directories(runtime_host PUBLIC
   ${TOOLCHAIN_DIR}/lib/clang/${LLVM_VERSION}/lib/baremetal/${COMPILERRT_HOST}
 )
@@ -92,7 +91,6 @@ target_include_directories(trampoline_rv32im
 ################################################################################
 add_library(runtime_cluster_snitch STATIC)
 
-# WIESEP: To avoid compatibility issues, link against RV32IM libraries
 target_link_directories(runtime_cluster_snitch PUBLIC
   ${TOOLCHAIN_DIR}/lib/clang/${LLVM_VERSION}/lib/baremetal/${COMPILERRT_CLUSTER_SNITCH}
 )

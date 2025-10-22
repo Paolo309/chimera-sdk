@@ -8,7 +8,6 @@
 #define _SOC_INCLUDE_GUARD_
 
 // Include Utility Headers
-#include "util.h"
 #include "params.h"
 
 // Include Register Definitions
@@ -21,6 +20,5 @@
 
 // Include Address Maps
 #include "addr_maps/soc_addr_map.h"
-#include "addr_maps/snitch_cluster_addrmap.h"
 
 #endif //_SOC_INCLUDE_GUARD_

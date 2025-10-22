@@ -8,7 +8,6 @@
 #define _SOC_INCLUDE_GUARD_
 
 // Include Utility Headers
-// #include "util.h"
 #include "params.h"
 #include "padframe.h"
 

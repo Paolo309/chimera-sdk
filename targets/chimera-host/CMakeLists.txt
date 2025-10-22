@@ -11,9 +11,8 @@
 ################################################################################
 add_library(runtime_host STATIC)
 
-# WIESEP: To avoid compatibility issues, link against RV32IM libraries
 target_link_directories(runtime_host PUBLIC
-  ${TOOLCHAIN_DIR}/lib/clang/${LLVM_VERSION}/lib/baremetal/rv32im
+  ${TOOLCHAIN_DIR}/lib/clang/${LLVM_VERSION}/lib/baremetal/${COMPILERRT_HOST}
 )
 
 # WIESEP: Make sure picolibc exists before building the host runtime for the header files

@@ -13,10 +13,10 @@ TOOLCHAIN_DIR := ${ROOT_DIR}/toolchain
 
 LLVM_INSTALL_DIR ?= ${INSTALL_DIR}/llvm
 LLVM_CLANG_RT_RISCV_RV32IMC ?= ${LLVM_INSTALL_DIR}/lib/clang/15.0.0/lib/baremetal/rv32imc/libclang_rt.builtins-riscv32.a
-GVSOC_INSTALL_DIR ?= ${ROOT_DIR}/${INSTALL_PREFIX}
+GVSOC_INSTALL_DIR ?= ${INSTALL_DIR}/gvsoc
 
 LLVM_COMMIT_HASH ?= 1ccb97ef1789b8c574e3fcab0de674e11b189b96
-GVSOC_COMMIT_HASH ?= 111f5a6b2f94b5f569635a5565e8c21e4111f286
+GVSOC_COMMIT_HASH ?= 68e835cd52c55e0fd467a1863b4701cf90478dc6
 
 CLANG_FORMAT_EXECUTABLE ?= clang-format
 
@@ -40,15 +40,18 @@ export-symbols:
 	@echo "Please export the following symbols:"
 	@echo "GVSOC_HOME=${GVSOC_INSTALL_DIR}/gvsoc"
 
-gvsoc:
-	mkdir -p ${GVSOC_INSTALL_DIR} && cd ${GVSOC_INSTALL_DIR} && \
-	git clone https://github.com/gvsoc/gvsoc.git && \
-	cd ${GVSOC_INSTALL_DIR}/gvsoc && git checkout ${GVSOC_COMMIT_HASH} && \
+${TOOLCHAIN_DIR}/gvosc:
+	mkdir -p ${TOOLCHAIN_DIR} && cd ${TOOLCHAIN_DIR} && \
+	git clone https://github.com/Xeratec/gvsoc.git && \
+	cd ${TOOLCHAIN_DIR}/gvsoc && git checkout ${GVSOC_COMMIT_HASH} && \
 	git submodule update --init --recursive && \
 	pip install -r core/requirements.txt && \
 	pip install -r gapy/requirements.txt && \
-	make all TARGETS=chimera
+	make all TARGETS=chimera INSTALLDIR=${GVSOC_INSTALL_DIR}
 
+${GVSOC_INSTALL_DIR}: ${TOOLCHAIN_DIR}/gvosc
+
+gvsoc: ${GVSOC_INSTALL_DIR}
 
 ${TOOLCHAIN_DIR}/llvm-project:
 	mkdir -p ${TOOLCHAIN_DIR} && \

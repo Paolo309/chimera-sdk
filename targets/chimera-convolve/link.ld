@@ -64,10 +64,9 @@ SECTIONS {
   {
     . = ALIGN(32);
     __cdata_start = .;
-      KEEP(*(.cdata .cdata.*))
+    *(.cdata .cdata.*)
     . = ALIGN(32);
     __cdata_end = .;
-  /* } > memisl */
   } > l1_c4 AT > memisl
   /* Provide symbols for the load address (LMA) of the .cdata section so
      runtime code can copy the initialized contents from flash/main memory
@@ -79,10 +78,9 @@ SECTIONS {
   {
     . = ALIGN(32);
     __cbss_start = .;
-    KEEP(*(.cbss .cbss.*))
+    *(.cbss .cbss.*)
     . = ALIGN(32);
     __cbss_end = .;
-  /* } > l1_c4 */
   } > l1_c4 AT > memisl
 
 
@@ -97,36 +95,36 @@ SECTIONS {
   } > memisl
 
   .l1 (NOLOAD) : ALIGN(16) {
-    KEEP(*(.l1 .l1.*) )
+    *(.l1 .l1.*)
   } > l1
 
   .l1_c0 : ALIGN(16) {
     __l1_c0_start = .;
-    KEEP(*(.l1_c0 .l1_c0.*) )
+    *(.l1_c0 .l1_c0.*)
     __l1_c0_end = .;
   } > l1_c0
 
   .l1_c1 : ALIGN(16) {
     __l1_c1_start = .;
-    KEEP(*(.l1_c1 .l1_c1.*) )
+    *(.l1_c1 .l1_c1.*)
     __l1_c1_end = .;
   } > l1_c1
 
   .l1_c2 : ALIGN(16) {
     __l1_c2_start = .;
-    KEEP(*(.l1_c2 .l1_c2.*) )
+    *(.l1_c2 .l1_c2.*)
     __l1_c2_end = .;
   } > l1_c2
 
   .l1_c3 : ALIGN(16) {
     __l1_c3_start = .;
-    KEEP(*(.l1_c3 .l1_c3.*) )
+    *(.l1_c3 .l1_c3.*)
     __l1_c3_end = .;
   } > l1_c3
 
   .l1_c4 : ALIGN(16) {
     __l1_c4_start = .;
-    KEEP(*(.l1_c4 .l1_c4.*) )
+    *(.l1_c4 .l1_c4.*)
     __l1_c4_end = .;
   } > l1_c4
 

@@ -24,6 +24,7 @@
 
 static const uint8_t _chimera_numCores[] = {0};
 static const uint8_t _chimera_hartBase[] = {0};
+static const uint32_t _chimera_clusterBase[] = {0};
 
 #define _chimera_numClusters 0
 
