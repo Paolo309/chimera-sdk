@@ -142,6 +142,8 @@ int32_t testReturn(void *args) {
      */
     snrt_init();
 
+    snrt_cluster_hw_barrier();
+
     /*
      * DM core (data master) performs data setup and L1 allocation. This keeps
      * high-latency operations out of the compute cores and centralizes

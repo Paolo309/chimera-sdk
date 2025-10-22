@@ -59,6 +59,35 @@ static inline int tx_ready(uint32_t base) {
 }
 
 /**
+ * @brief Checks if the transmitter is completely empty.
+ *
+ * @param base Base address of the UART peripheral.
+ * @return 1 if the transmitter is empty, 0 otherwise.
+ */
+static inline int tx_empty(uint32_t base) {
+    uint8_t status = reg8_read(base, UART_LINE_STATUS_REG_OFFSET);
+    return (status & (1 << UART_LINE_STATUS_TMIT_EMPTY_BIT)) != 0;
+}
+
+/**
+ * @brief Flushes the UART transmitter, ensuring all data is sent.
+ *
+ * @param iface UART interface instance.
+ * @return 0 on success, -1 on failure.
+ */
+int uart_apb_flush(const chi_interface_t *iface) {
+    if (!iface || !iface->base) {
+        return -1;
+    }
+
+    uint32_t base = (uint32_t)iface->base;
+
+    while (!tx_empty(base));
+
+    return 0;
+}
+
+/**
  * @brief Opens and initializes the UART interface.
  *
  * @param iface UART interface instance.
@@ -172,6 +201,9 @@ ssize_t uart_apb_write(const chi_interface_t *iface, const void *buffer, uint32_
         reg8_write(base, UART_THR_REG_OFFSET, src[i]);
     }
 
+    // Make sure all data is transmitted
+    while (!tx_ready(base));
+
     if (cb) {
         (void)cb(iface);
     }
@@ -182,8 +214,11 @@ ssize_t uart_apb_write(const chi_interface_t *iface, const void *buffer, uint32_
 // VIVIANEP: Need to skip doxygen generation for these functions
 // to avoid duplicated defintion errors in the generated documentation
 /// @cond DOXYGEN_SHOULD_SKIP_THIS
-const chi_interface_api_t default_uart_api = {
-    .open = uart_apb_open, .close = uart_apb_close, .read = uart_apb_read, .write = uart_apb_write};
+const chi_interface_api_t default_uart_api = {.open = uart_apb_open,
+                                              .close = uart_apb_close,
+                                              .read = uart_apb_read,
+                                              .write = uart_apb_write,
+                                              .flush = uart_apb_flush};
 /// @endcond
 
 /** @} */ // End of drivers_uart_apb group

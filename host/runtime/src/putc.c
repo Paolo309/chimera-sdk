@@ -22,32 +22,34 @@
  * @{
  */
 
-#ifdef CHIMERA_SIMULATION_BACKEND_ASIC
+#ifdef HARDWARE_BACKEND_ASIC
 #ifdef CHIMERA_DRIVER_UART
 int uart_putc(char c, FILE *file) {
     (void)file;
     default_uart_inst.api->write(&default_uart_inst, &c, 1, NULL);
+    default_uart_inst.api->flush(&default_uart_inst);
     return c;
 }
 #else
+#warning "UART driver not enabled for ASIC backend, using stub implementation."
 int uart_putc(char c, FILE *file) {
     (void)c;
     (void)file;
     return -1;
 }
 #endif // CHIMERA_DRIVER_UART
-#elif CHIMERA_SIMULATION_BACKEND_RTL
+#elif HARDWARE_BACKEND_RTL
 int uart_putc(char c, FILE *file) {
     (void)c;
     *(volatile uint32_t *)(long)(0x300010F0) = c;
     return c;
 }
-#else  // CHIMERA_SIMULATION_BACKEND_GVSOC
+#else  // HARDWARE_BACKEND_GVSOC
 int uart_putc(char c, FILE *file) {
     (void)file;
     *(volatile uint32_t *)(long)(0x03004000) = c;
     return c;
 }
-#endif // CHIMERA_SIMULATION_BACKEND_RTL
+#endif // HARDWARE_BACKEND_RTL
 
 /** @} */ // end defgroup drivers_uart

@@ -56,11 +56,3 @@ target_include_directories(runtime_cluster_snitch
     ${SNITCH_ROOT_DIR}/core/src
     ${SNITCH_ROOT_DIR}/omp/src
 )
-
-if(SIMULATION_BACKEND STREQUAL "RTL")
-    # target_include_directories(runtime_cluster_snitch PUBLIC
-    #     ${SNITCH_ROOT_DIR}/target/rtl/inc
-    # )
-
-    message(WARNING "[SNITCH-SDK] Unsupported backend: ${SIMULATION_BACKEND}")
-endif()

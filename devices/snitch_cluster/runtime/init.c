@@ -40,7 +40,7 @@ void snrt_init() {
     size_t size_tbss = (size_t)(&__tbss_end) - (size_t)(&__tbss_start);
     memset((void *)(tls_ptr + size_tdata), 0, size_tbss);
     // snrt_dma_start_1d((void *)(tls_ptr + (size_t)(&__tbss_start) - (size_t)(&__tdata_start)),
-                    //   (void *)(snrt_zero_memory_ptr()), size_tdata);
+    //   (void *)(snrt_zero_memory_ptr()), size_tdata);
     // snrt_dma_wait_all();
 
     /********** Cluster Initialization **********/

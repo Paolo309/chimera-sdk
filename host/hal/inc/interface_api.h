@@ -98,6 +98,14 @@ struct chi_interface_api {
      */
     ssize_t (*write)(const chi_interface_t *iface, const void *buffer, uint32_t size,
                      chi_interface_callback_t cb);
+
+    /**
+     * @brief Flushes the interface buffers.
+     *
+     * @param iface Pointer to the interface instance.
+     * @return 0 on success, negative value on failure.
+     */
+    int (*flush)(const chi_interface_t *iface);
 };
 
 /**

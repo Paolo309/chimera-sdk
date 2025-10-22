@@ -57,8 +57,8 @@ endif()
 
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/Utils.cmake)
 
-set(VALID_SIMULATION_BACKEND "RTL" "GVSoC")
-set(SIMULATION_BACKEND "GVSoC" CACHE STRING "Toogle the simulation backend")
+set(VALID_HARDWARE_BACKEND "RTL" "GVSoC" "ASIC")
+set(HARDWARE_BACKEND "GVSoC" CACHE STRING "Toogle the chimera backend")
 
 set(error_messages "")
 
@@ -86,14 +86,14 @@ add_subdirectory(host)
 # JUNGVI: "simulation" compiles and run the test, "compile" just compiles the tests, and none does neither.
 set(VALID_TEST_MODES "simulation" "compile" "none")
 
-if(NOT SIMULATION_BACKEND IN_LIST VALID_SIMULATION_BACKEND)
-  list(APPEND error_messages "[CHIMERA-SDK] Invalid SIMULATION_BACKEND: ${SIMULATION_BACKEND}")
-  list(APPEND error_messages "[CHIMERA-SDK] Available options for SIMULATION_BACKEND are:")
-  foreach(mode IN LISTS VALID_SIMULATION_BACKEND)
+if(NOT HARDWARE_BACKEND IN_LIST VALID_HARDWARE_BACKEND)
+  list(APPEND error_messages "[CHIMERA-SDK] Invalid HARDWARE_BACKEND: ${HARDWARE_BACKEND}")
+  list(APPEND error_messages "[CHIMERA-SDK] Available options for HARDWARE_BACKEND are:")
+  foreach(mode IN LISTS VALID_HARDWARE_BACKEND)
     list(APPEND error_messages " - ${mode}")
   endforeach()
 else()
-  message(STATUS "[CHIMERA-SDK] Hardware Backend      : ${SIMULATION_BACKEND}")
+  message(STATUS "[CHIMERA-SDK] Hardware Backend      : ${HARDWARE_BACKEND}")
 endif()
 
 # Config Variables Default Values

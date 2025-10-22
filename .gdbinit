@@ -1,6 +1,6 @@
 # ---- Basics ----
-# set pagination off
-# set confirm off
+set pagination off
+set confirm off
 set print pretty on
 set disassemble-next-line on
 set target-async on
@@ -21,7 +21,17 @@ define restart
   continue
 end
 
-echo \n[GDB] Use: oc \n
-echo Available Shortcuts:\n
+# ---- Print a0 helpers ----
+# When execution stops (e.g. on ebreak), detect and print a0
+define hook-stop
+  set $insn32 = *(unsigned int *)$pc
+  set $insn16 = *(unsigned short *)$pc
+  if $insn32 == 0x00100073 || $insn16 == 0x9002
+    printf "[GDB] Return Value: 0x%x (%d)\n", $a0, $a0
+  end
+end
 
-\n\n
+echo [GDB] Available Shortcuts:\n
+echo   oc       : Connects to OpenOCD and halts the target\n
+echo   restart  : Sets PC to _start and continues execution\n
+echo \n

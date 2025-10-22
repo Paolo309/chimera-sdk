@@ -230,6 +230,9 @@ void offload_snitchCluster(void *function, void *args, void **stack_ptr, uint8_t
         volatile uint32_t *interruptTarget = ((uint32_t *)CLINT_CTRL_BASE) + hartId + i;
         *interruptTarget = 1;
     }
+
+    // Prevent race contidtion by waiting for all cores to clear the busy flag
+    for (volatile int i = 0; i < 1000; i++);
 }
 
 /**

@@ -123,11 +123,6 @@ int main(void) {
     printf("Chimera running at %d.%d MHz!\n", (core_freq / 1000000), (core_freq % 1000000));
     printf("Chimera running at %d.%d MHz!\n", (core_freq_fll / 1000000), (core_freq_fll % 1000000));
 
-    // Last character gets stuck in FIFO, thus print an extra newline
-    printf("\n");
-
-    for (volatile int i = 0; i < 10000; i++);
-
     setGPIO0_GPIO();
 
     // Enable FLL bypass

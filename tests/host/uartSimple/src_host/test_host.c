@@ -23,7 +23,7 @@
 #include "interface_api.h"
 
 #ifdef TARGET_PLATFORM_CHIMERA_CONVOLVE
-void setGPIO0_UART() {
+void setGPIO0_UART_TX() {
     // Connect UART port to GPIO 0 Pad
     chimera_padframe_aon_gpio_0_mux_set(CHIMERA_PADFRAME_AON_GPIO_0_group_UART0_port_TX);
 
@@ -31,12 +31,18 @@ void setGPIO0_UART() {
     chimera_padframe_aon_gpio_0_cfg_rxe_set(0);  // Disable Pad's Receiver
     chimera_padframe_aon_gpio_0_cfg_trie_set(0); // Disable the tri-state transmitter
 }
+void setGPIO1_UART_RX() {
+    // Connect UART port to GPIO 1 Pad
+    chimera_padframe_aon_gpio_1_mux_set(CHIMERA_PADFRAME_AON_GPIO_1_group_UART0_port_RX);
+}
 #endif
 
 int main(void) {
 #ifdef TARGET_PLATFORM_CHIMERA_CONVOLVE
-    // Connect UART to GPIO 0
-    setGPIO0_UART();
+    // Connect UART TX to GPIO 0
+    setGPIO0_UART_TX();
+    // Connect UART RX to GPIO 1
+    setGPIO1_UART_RX();
 #endif
 
     // 1. Configure the UART from defaults
@@ -79,14 +85,13 @@ int main(void) {
     }
 
     // 10. Read the response from UART
-    // if (iface_read(&uart_iface, response_buffer, (uint32_t)expected_len, NULL) < 0) {
-    //     iface_close(&uart_iface);
-    //     return -1;
-    // }
+    if (iface_read(&uart_iface, response_buffer, (uint32_t)expected_len, NULL) < 0) {
+        iface_close(&uart_iface);
+        return -1;
+    }
 
-    // // 11. Validate the response
-    // bool ok = (strncmp(response_buffer, expected_response, expected_len) == 0);
-    // iface_close(&uart_iface);
-    // return ok ? 0 : -1;
-    return 0;
+    // 11. Validate the response
+    bool ok = (strncmp(response_buffer, expected_response, expected_len) == 0);
+    iface_close(&uart_iface);
+    return ok ? 0 : -1;
 }

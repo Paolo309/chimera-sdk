@@ -132,7 +132,7 @@ build_project() {
     local cmake_args=(
         "-DTARGET_PLATFORM=$target"
         "-DTOOLCHAIN_DIR=$toolchain_dir"
-        "-DSIMULATION_BACKEND=GVSoC"
+        "-DHARDWARE_BACKEND=GVSoC"
         "-B" "$BUILD_DIR"
     )
 

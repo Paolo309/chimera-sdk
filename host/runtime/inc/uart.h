@@ -109,7 +109,8 @@ extern const uart_config_t default_uart_cfg;
  *     .open  = uart_open,
  *     .close = uart_close,
  *     .read  = uart_read,
- *     .write = uart_write
+ *     .write = uart_write,
+ *     .flush = uart_flush
  * };
  * @endcode
  */

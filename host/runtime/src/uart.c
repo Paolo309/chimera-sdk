@@ -39,9 +39,13 @@ chi_interface_t default_uart_inst = {
     .api = &default_uart_api, .base = (uintptr_t)&__base_uart, .cfg = (void *)&default_uart_cfg};
 /// @endcond
 
-#ifdef CHIMERA_SIMULATION_BACKEND_RTL
+#ifdef HARDWARE_BACKEND_GVSOC
 
-#ifdef CHIMERA_DRIVER_UART
+void _uart_init(void) {
+}
+void _uart_deinit(void) {
+}
+#else  // HARDWARE_BACKEND_GVSOC
 void _uart_init(void) {
     static uart_config_t uart_cfg;
     uart_cfg = default_uart_cfg;
@@ -58,20 +62,7 @@ void _uart_init(void) {
 void _uart_deinit(void) {
     default_uart_inst.api->close(&default_uart_inst);
 }
-
-#else
-void _uart_init(void) {
-}
-void _uart_deinit(void) {
-}
-#endif // CHIMERA_DRIVER_UART
-
-#else  // CHIMERA_SIMULATION_BACKEND_GVSOC
-void _uart_init(void) {
-}
-void _uart_deinit(void) {
-}
-#endif // CHIMERA_SIMULATION_BACKEND_RTL
+#endif // HARDWARE_BACKEND_GVSOC
 
 /** @} */ // end defgroup drivers_uart
 

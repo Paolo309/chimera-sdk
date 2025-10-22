@@ -18,30 +18,68 @@
 
 // Include Runtime Headers
 #include "log.h"
+#include "util.h"
 
 // Import HAL Headers
 
 #define STACK_ADDRESS_4 (CLUSTER_4_BASE + 0x20000 - 1)
+#define CLUSTER 4
 
 extern uintptr_t volatile tohost, fromhost;
 
-int main() {
-    void *stack_cluster0_ptr[CLUSTER_0_NUMCORES];
-    generate_snitchCluster_SPs_uniform(0, (void *)STACK_ADDRESS_4, 0x2000, stack_cluster0_ptr);
+#ifdef TARGET_PLATFORM_CHIMERA_CONVOLVE
+void setGPIO0_UART() {
+    // Connect UART port to GPIO 0 Pad
+    chimera_padframe_aon_gpio_0_mux_set(CHIMERA_PADFRAME_AON_GPIO_0_group_UART0_port_TX);
+
+    // Set GPIO 0 regs to transmit
+    chimera_padframe_aon_gpio_0_cfg_rxe_set(0);  // Disable Pad's Receiver
+    chimera_padframe_aon_gpio_0_cfg_trie_set(0); // Disable the tri-state transmitter
+}
+#endif
+
+int main(void) {
+#ifdef TARGET_PLATFORM_CHIMERA_CONVOLVE
+    // Connect UART to GPIO 0
+    setGPIO0_UART();
+#endif
+
+    // 2. Read the RTC frequency from a hardware register
+    uint32_t rtc_freq = *reg32(&__base_regs, CHESHIRE_RTC_FREQ_REG_OFFSET);
+
+    // 3. Calculate the desired core frequency from the RTC frequency
+    uint32_t core_freq = clint_get_core_freq(rtc_freq, 512);
+
+    printf("Chimera running at %d.%d MHz!\n", (core_freq / 1000000), (core_freq % 1000000));
+
+    void *stack_cluster_ptr[NUM_CLUSTER_CORES];
+    generate_snitchCluster_SPs_uniform(CLUSTER, (void *)STACK_ADDRESS_4, 0x2000, stack_cluster_ptr);
 
     setup_snitchCluster_interruptHandler(clusterInterruptHandler);
-    offload_snitchCluster(testReturn, NULL, stack_cluster0_ptr, 4);
+
+    set_snitchCluster_clockGating(CLUSTER, 0);
+
+    set_snitchCluster_reset(CLUSTER, 1);
+    for (volatile int i = 0; i < 10; i++);
+    set_snitchCluster_reset(CLUSTER, 0);
 
     printf_log("Waiting for cluster to finish...\n");
 
+    offload_snitchCluster(testReturn, NULL, stack_cluster_ptr, CLUSTER);
+
     // Handle tohost/fromhost communication
-    while (snitchCluster_busy(4)) {
+    while (snitchCluster_busy(CLUSTER)) {
         // Wait for tohost to be set by the device
         if (tohost != 0) {
+            volatile uint32_t syscall_addr = tohost;
+
+            // Acknowledge tohost
+            tohost = 0;
+
             // printf("Host received tohost: %#x\n", tohost);
 
             // Cluster does tohost = (uintptr_t)buf->hdr.syscall_mem;
-            uint32_t *syscall_mem = (uint32_t *)tohost;
+            uint32_t *syscall_mem = (uint32_t *)syscall_addr;
 
             // printf("Host handling syscall %u: fd=%#x, buf=%p, len=%#x\n", syscall_mem[0],
             //        syscall_mem[1], (void *)syscall_mem[2], syscall_mem[3]);
@@ -52,16 +90,15 @@ int main() {
                 printf_log("Unknown syscall: %u\n", syscall_mem[0]);
             }
 
-            fromhost = tohost;
-            while (fromhost != 0);
-
-            // printf("Host finished syscall %u\n", syscall_mem[0]);
-            tohost = 0;
+            // Notify cluster that syscall is done
+            fromhost = syscall_addr;
         }
     }
 
-    uint32_t retVal = wait_snitchCluster_return(4);
+    uint32_t retVal = wait_snitchCluster_return(CLUSTER);
     retVal = retVal >> 1;
+
+    set_snitchCluster_clockGating(CLUSTER, 1);
 
     printf_log("Returned from cluster: 0x%08x (%d)\n", retVal, retVal);
 

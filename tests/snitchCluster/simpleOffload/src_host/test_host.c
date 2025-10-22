@@ -21,23 +21,44 @@
 // Import HAL Headers
 
 #define STACK_ADDRESS_0 (CLUSTER_0_BASE + 0x20000 - 1)
+#define CLUSTER 4
 
 static offloadArgs_t offloadArgs = {.value = 0xdeadbeef};
 
-int main() {
-    void *stack_cluster0_ptr[CLUSTER_0_NUMCORES];
-    generate_snitchCluster_SPs_uniform(0, (void *)STACK_ADDRESS_0, 0x2000, stack_cluster0_ptr);
+#ifdef TARGET_PLATFORM_CHIMERA_CONVOLVE
+void setGPIO0_UART() {
+    // Connect UART port to GPIO 0 Pad
+    chimera_padframe_aon_gpio_0_mux_set(CHIMERA_PADFRAME_AON_GPIO_0_group_UART0_port_TX);
+
+    // Set GPIO 0 regs to transmit
+    chimera_padframe_aon_gpio_0_cfg_rxe_set(0);  // Disable Pad's Receiver
+    chimera_padframe_aon_gpio_0_cfg_trie_set(0); // Disable the tri-state transmitter
+}
+#endif
+
+int main(void) {
+#ifdef TARGET_PLATFORM_CHIMERA_CONVOLVE
+    // Connect UART to GPIO 0
+    setGPIO0_UART();
+#endif
+
+    void *stack_cluster_ptr[NUM_CLUSTER_CORES];
+    generate_snitchCluster_SPs_uniform(CLUSTER, (void *)STACK_ADDRESS_0, 0x2000, stack_cluster_ptr);
 
     setup_snitchCluster_interruptHandler(clusterInterruptHandler);
 
-    set_snitchCluster_reset(0, 0);
-    set_snitchCluster_clockGating(0, 0);
+    set_snitchCluster_clockGating(CLUSTER, 0);
 
-    offload_snitchCluster(testReturn, &offloadArgs, stack_cluster0_ptr, 0);
-    uint32_t retVal = wait_snitchCluster_return(0);
+    set_snitchCluster_reset(CLUSTER, 1);
+    for (volatile int i = 0; i < 10; i++);
+    set_snitchCluster_reset(CLUSTER, 0);
 
-    set_snitchCluster_clockGating(0, 1);
-    set_snitchCluster_reset(0, 1);
+    printf_log("Waiting for cluster to finish...\n");
+
+    offload_snitchCluster(testReturn, &offloadArgs, stack_cluster_ptr, CLUSTER);
+    uint32_t retVal = wait_snitchCluster_return(CLUSTER);
+
+    set_snitchCluster_clockGating(CLUSTER, 1);
 
     printf("Returned value: 0x%08x (%d)\n", retVal, retVal);
     printf("Expected value: 0x%08x\n", (TESTVAL | 0x000000001));

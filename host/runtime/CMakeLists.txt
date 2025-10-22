@@ -10,10 +10,12 @@ target_include_directories(runtime_host
   ${CMAKE_CURRENT_LIST_DIR}/inc
 )
 
-if(SIMULATION_BACKEND STREQUAL "RTL")
-  target_compile_definitions(runtime_host PUBLIC CHIMERA_SIMULATION_BACKEND_RTL)
-elseif(SIMULATION_BACKEND STREQUAL "GVSoC")
-  target_compile_definitions(runtime_host PUBLIC CHIMERA_SIMULATION_BACKEND_GVSOC)
+if(HARDWARE_BACKEND STREQUAL "RTL")
+  target_compile_definitions(runtime_host PUBLIC HARDWARE_BACKEND_RTL)
+elseif(HARDWARE_BACKEND STREQUAL "GVSoC")
+  target_compile_definitions(runtime_host PUBLIC HARDWARE_BACKEND_GVSOC)
+elseif(HARDWARE_BACKEND STREQUAL "ASIC")
+  target_compile_definitions(runtime_host PUBLIC HARDWARE_BACKEND_ASIC)
 endif()
 
 target_sources(runtime_host PRIVATE
