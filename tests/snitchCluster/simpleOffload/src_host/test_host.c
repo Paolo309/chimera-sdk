@@ -25,7 +25,7 @@
 
 static offloadArgs_t offloadArgs = {.value = 0xdeadbeef};
 
-#ifdef TARGET_PLATFORM_CHIMERA_CONVOLVE
+#if defined(TARGET_PLATFORM_CHIMERA_CONVOLVE) && defined(HARDWARE_BACKEND_ASIC)
 void setGPIO0_UART() {
     // Connect UART port to GPIO 0 Pad
     chimera_padframe_aon_gpio_0_mux_set(CHIMERA_PADFRAME_AON_GPIO_0_group_UART0_port_TX);
@@ -37,7 +37,7 @@ void setGPIO0_UART() {
 #endif
 
 int main(void) {
-#ifdef TARGET_PLATFORM_CHIMERA_CONVOLVE
+#if defined(TARGET_PLATFORM_CHIMERA_CONVOLVE) && defined(HARDWARE_BACKEND_ASIC)
     // Connect UART to GPIO 0
     setGPIO0_UART();
 #endif

@@ -22,7 +22,7 @@
 // Import HAL Headers
 #include "interface_api.h"
 
-#ifdef TARGET_PLATFORM_CHIMERA_CONVOLVE
+#if defined(TARGET_PLATFORM_CHIMERA_CONVOLVE) && defined(HARDWARE_BACKEND_ASIC)
 void setGPIO0_UART_TX() {
     // Connect UART port to GPIO 0 Pad
     chimera_padframe_aon_gpio_0_mux_set(CHIMERA_PADFRAME_AON_GPIO_0_group_UART0_port_TX);
@@ -38,7 +38,7 @@ void setGPIO1_UART_RX() {
 #endif
 
 int main(void) {
-#ifdef TARGET_PLATFORM_CHIMERA_CONVOLVE
+#if defined(TARGET_PLATFORM_CHIMERA_CONVOLVE) && defined(HARDWARE_BACKEND_ASIC)
     // Connect UART TX to GPIO 0
     setGPIO0_UART_TX();
     // Connect UART RX to GPIO 1
