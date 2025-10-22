@@ -29,7 +29,7 @@
  * @warning Stack, thread and global pointer might not yet be set up!
  */
 __attribute__((naked)) void clusterInterruptHandler() {
-    _SETUP_GP_TP();
+    _SETUP_GP();
 
     asm volatile(
         // Load mhartid CSR into t0
@@ -141,8 +141,6 @@ int32_t testReturn(void *args) {
      * Initialize the Snitch runtime.
      */
     snrt_init();
-
-    snrt_cluster_hw_barrier();
 
     /*
      * DM core (data master) performs data setup and L1 allocation. This keeps

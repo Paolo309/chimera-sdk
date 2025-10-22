@@ -22,8 +22,8 @@
 
 // Import HAL Headers
 
-#define STACK_ADDRESS_4 (CLUSTER_4_BASE + 0x20000 - 1)
 #define CLUSTER 4
+#define STACK_ADDRESS (_chimera_clusterBase[CLUSTER] + 0x20000 - 1)
 
 extern uintptr_t volatile tohost, fromhost;
 
@@ -53,7 +53,7 @@ int main(void) {
     printf("Chimera running at %d.%d MHz!\n", (core_freq / 1000000), (core_freq % 1000000));
 
     void *stack_cluster_ptr[NUM_CLUSTER_CORES];
-    generate_snitchCluster_SPs_uniform(CLUSTER, (void *)STACK_ADDRESS_4, 0x2000, stack_cluster_ptr);
+    generate_snitchCluster_SPs_uniform(CLUSTER, (void *)STACK_ADDRESS, 0x2000, stack_cluster_ptr);
 
     setup_snitchCluster_interruptHandler(clusterInterruptHandler);
 

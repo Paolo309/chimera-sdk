@@ -40,7 +40,7 @@ static __thread int32_t thread_local_var4 = 4;
  * @warning Stack, thread and global pointer might not yet be set up!
  */
 __attribute__((naked)) void clusterInterruptHandler() {
-    _SETUP_GP_TP();
+    _SETUP_GP();
 
     asm volatile(
         // Load mhartid CSR into t0
@@ -61,7 +61,6 @@ __attribute__((naked)) void clusterInterruptHandler() {
     );
 }
 
-extern volatile uint32_t *_snrt_printf_mutex_ptr;
 /**
  * @brief Main function of the cluster test.
  *
@@ -73,8 +72,6 @@ int32_t testReturn(void *args) {
     extern char __cdata_lma_start, __cdata_lma_end;
 
     snrt_init();
-
-    snrt_cluster_hw_barrier();
 
     if (snrt_is_dm_core()) {
         size_t size_tdata = (size_t)(&__tdata_end) - (size_t)(&__tdata_start);

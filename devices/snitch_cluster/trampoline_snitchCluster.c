@@ -31,7 +31,7 @@ extern void *_trampoline_stack;
  */
 // WIESEP: Make sure the compiler does not allocate a stack frame
 void __attribute__((naked)) _trampoline() {
-    _SETUP_GP_TP();
+    _SETUP_GP();
 
     asm volatile(
         // Get hart ID (hardware thread ID)
@@ -43,7 +43,7 @@ void __attribute__((naked)) _trampoline() {
         "add a0, a0, t0\n"              // Compute the address of _trampoline_stack[hartId]
         "lw sp, 0(a0)\n"                // Load stack pointer from the computed address
 
-        // // Adjust stack pointer for thread-local data (.tdata section)
+        // Adjust stack pointer for thread-local data (.tdata section)
         "la t1, __tdata_end\n"   // Load end address of .tdata section into t0
         "la t2, __tdata_start\n" // Load start address of .tdata section into t1
         "sub t1, t1, t2\n"       // Compute size of .tdata section
@@ -58,7 +58,7 @@ void __attribute__((naked)) _trampoline() {
         // Set thread pointer (tp) to stack pointer
         "mv tp, sp\n" // Move stack pointer to thread pointer
 
-        // Aliogn stack pointer to 16-byte boundary after allocating TLS
+        // Align stack pointer to 16-byte boundary after allocating TLS
         "andi sp, sp, -0xF\n" // Ensure stack pointer is 16-Byte aligned (ABI)
 
         // Load function pointer and arguments

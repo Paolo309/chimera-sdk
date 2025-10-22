@@ -20,8 +20,8 @@
 
 // Import HAL Headers
 
-#define STACK_ADDRESS_0 (CLUSTER_0_BASE + 0x20000 - 1)
-#define CLUSTER 4
+#define CLUSTER 0
+#define STACK_ADDRESS (_chimera_clusterBase[CLUSTER] + 0x20000 - 1)
 
 static offloadArgs_t offloadArgs = {.value = 0xdeadbeef};
 
@@ -43,7 +43,7 @@ int main(void) {
 #endif
 
     void *stack_cluster_ptr[NUM_CLUSTER_CORES];
-    generate_snitchCluster_SPs_uniform(CLUSTER, (void *)STACK_ADDRESS_0, 0x2000, stack_cluster_ptr);
+    generate_snitchCluster_SPs_uniform(CLUSTER, (void *)STACK_ADDRESS, 0x2000, stack_cluster_ptr);
 
     setup_snitchCluster_interruptHandler(clusterInterruptHandler);
 
