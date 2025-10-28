@@ -10,6 +10,7 @@
 typedef struct {
     uint32_t cycles;
     uint32_t* result_ptr;
+    uint32_t result[512];
 } offloadArgs_t;
 
 #endif //_TEST_HOST_INCLUDE_GUARD_

@@ -27,9 +27,7 @@
 #define P 4
 #define Q 4
 
-// #define HWPE_ADDR_BASE 0x30000000
-// #define HWPE_ADDR_BASE 0x30040000
-#define HWPE_ADDR_BASE 0x40840300
+#define HWPE_ADDR_BASE 0x40040000 // corresponds to `ext_mem_start_address` in snitch_cluster
 #define MXITA_TRIGGER 0x00
 #define MXITA_ACQUIRE 0x04
 #define HWPE_MXIP_ADDR (HWPE_ADDR_BASE + 0x58)
@@ -88,7 +86,7 @@ void clusterInterruptHandler() {
     _SETUP_GP();
 
     if (running_mxita) {
-        snrt_hwpe_clr_mxip(2);
+        snrt_hwpe_clr_mxip(2); // TODO just get it from somewhere (e.g. snrt_cluster_core_idx, or variable)
         running_mxita = 0;
     }
 
@@ -111,14 +109,10 @@ void clusterInterruptHandler() {
     );
 }
 
-// static __thread int test = 88;
-
 int32_t __attribute__((__section__(".cbss"))) * pointer_input;
 int32_t __attribute__((__section__(".cbss"))) * pointer_output;
 
-int32_t __attribute__((__section__(".cdata"))) data_in[] = {5, 2, 3, 4}; // sum = 14
-
-uint32_t __attribute__((__section__(".cdata"))) result[512] = { 0 };
+// uint32_t __attribute__((__section__(".cdata"))) result[512] = { 0 };
 // uint32_t result[512];
 
 
@@ -164,17 +158,11 @@ int32_t testReturn(void *args) {
     offloadArgs_t *argsStruct = (offloadArgs_t *)args;
 
     if (snrt_is_dm_core()) {
-        // pointer_input = data_in;
-        pointer_input = (int32_t *)snrt_l1_alloc(4*sizeof(int32_t));
-        pointer_output = (int32_t *)snrt_l1_alloc(4*sizeof(int32_t));
-
         local_input_matrix = snrt_l1_alloc(input_mat_size);
         local_weight_matrix = snrt_l1_alloc(weight_mat_size);
         local_input_scale = snrt_l1_alloc(input_scale_size);
         local_weight_scale = snrt_l1_alloc(weight_scale_size);
         local_output_matrix = snrt_l1_alloc(output_mat_size);
-
-        snrt_dma_start_1d(pointer_input, data_in, 4*sizeof(int32_t));
 
         snrt_dma_start_1d(local_input_matrix, input_matrix, input_mat_size);
         snrt_dma_start_1d(local_weight_matrix, weight_matrix, weight_mat_size);
@@ -189,6 +177,7 @@ int32_t testReturn(void *args) {
     if (core_idx == 2) {
         printf("[cycle=%u] Starting MXITA from core %d\n", snrt_mcycle(), core_idx);
         
+        // TODO probably better to instantiate status1 here
         do {
             status1 = hwpe_acquire_job();
         } while (status1 < 0);
@@ -212,11 +201,10 @@ int32_t testReturn(void *args) {
 
         printf("[cycle=%u] MXITA configured from core %d\n", snrt_mcycle(), core_idx);
 
-        // Read the mcycle CSR (this is our way to mark/delimit a specific code region for benchmarking)
         // uint32_t start_cycle = snrt_mcycle();
 
+        running_mxita = 1; // to tell the interrupt handler to clear mxip
         hwpe_trigger_job();
-        running_mxita = 1; // TODO maybe it should go before trigger
 
         // insert some nops to delay the core
         // for (volatile int i = 0; i < 1800; i++) {
@@ -225,8 +213,7 @@ int32_t testReturn(void *args) {
 
         // uint64_t t2 = (uint64_t)snrt_mcycle();
 
-
-        snrt_wfi(); // FIXME INTERRUPT NEVER ARRIVES
+        snrt_wfi();
 
         // uint64_t t3 = (uint64_t)snrt_mcycle();
         // mxita_cycles = t3 - t2;
@@ -264,22 +251,20 @@ int32_t testReturn(void *args) {
                           (volatile void *)local_output_matrix,
                           bytes);
         snrt_dma_wait_all();
-    }
 
-    snrt_cluster_hw_barrier();
+        // memcpy(argsStruct->result, (void *)result, bytes);
 
-    // random test from before // TODO remove
-    if (snrt_cluster_core_idx() == 4) {
-        mxita_cycles = (uint64_t)snrt_mcycle();
-        pointer_output[0] = 0;
-        for (int i = 0; i < 4; i++) {
-            pointer_output[0] += pointer_input[i];
+        // for (int i = 0; i < 10; i++) { // print as hex
+        //     // uint32_t* out = (uint32_t*) argsStruct->result;
+        //     printf("Output matrix[%d]: 0x%08x\n", i, argsStruct->result[i]);
+        // }
+        for (int i = 0; i < 10; i++) {
+            printf("result[%d] = 0x%08x\n", i, ((uint32_t*)result)[i]);
         }
-        mxita_cycles = (uint64_t)snrt_mcycle() - mxita_cycles;
-        argsStruct->cycles = (uint32_t)(mxita_cycles);
+        // TODO still needs output comparison
     }
 
     snrt_cluster_hw_barrier();
-    
-    return pointer_output[0] << 1;
+
+    return 0;
 }

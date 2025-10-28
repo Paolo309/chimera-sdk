@@ -84,7 +84,7 @@ int main() {
     // printf("result_ptr from cluster: %p\n", offloadArgs.result_ptr);
 
     // for (int i = 0; i < 10; i++) {
-    //     printf("Cluster result[%d]: %d\n", i, offloadArgs.result_ptr[i]);
+    //     printf("Cluster result[%d]: %d\n", i, offloadArgs.result[i]);
     // }
 
     // unsigned int n = 0x4229AE14;
