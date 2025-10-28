@@ -11,7 +11,7 @@ void snrt_init() {
     extern char __tbss_start, __tbss_end, __tdata_start, __tdata_end;
     extern volatile uint32_t __cbss_start, __cbss_end, __cdata_start, __cdata_end;
     extern volatile uint32_t __cdata_lma_start, __cdata_lma_end;
-    extern char __l1_c4_start, __l1_c4_end;
+    extern char __l1_c0_start, __l1_c0_end;
 
     /********** Cluster Memory Initialization **********/
     if (snrt_is_dm_core()) {
@@ -46,10 +46,10 @@ void snrt_init() {
     /********** Cluster Initialization **********/
     if (snrt_is_dm_core()) {
         // Initialize the cluster local storage pointer
-        _cls_ptr = (cls_t *)&__l1_c4_start;
+        _cls_ptr = (cls_t *)&__l1_c0_start;
 
         // Initialize the L1 allocator
-        snrt_l1_allocator()->base = ALIGN_UP((uint32_t)&__l1_c4_start, MIN_CHUNK_SIZE);
+        snrt_l1_allocator()->base = ALIGN_UP((uint32_t)&__l1_c0_start, MIN_CHUNK_SIZE);
         snrt_l1_allocator()->end = snrt_l1_end_addr();
         snrt_l1_allocator()->next = snrt_l1_allocator()->base;
 

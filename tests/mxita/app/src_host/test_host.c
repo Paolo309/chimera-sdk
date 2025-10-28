@@ -25,7 +25,7 @@
 // #define STACK_ADDRESS_0 (CLUSTER_0_BASE + 0x20000 - 1)
 // #define STACK_ADDRESS_4 (CLUSTER_4_BASE + 0x20000 - 1)
 
-#define CLUSTER 4
+#define CLUSTER 0
 #define STACK_ADDRESS (_chimera_clusterBase[CLUSTER] + 0x20000 - 1)
 
 extern uintptr_t volatile tohost, fromhost;

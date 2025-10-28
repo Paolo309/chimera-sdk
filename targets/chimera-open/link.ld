@@ -67,7 +67,7 @@ SECTIONS {
     *(.cdata .cdata.*)
     . = ALIGN(32);
     __cdata_end = .;
-  } > l1_c4 AT > memisl
+  } > l1_c0 AT > memisl
   /* Provide symbols for the load address (LMA) of the .cdata section so
      runtime code can copy the initialized contents from flash/main memory
      instead of using the VMA which points into L1. */
@@ -81,7 +81,7 @@ SECTIONS {
     *(.cbss .cbss.*)
     . = ALIGN(32);
     __cbss_end = .;
-  } > l1_c4 AT > memisl
+  } > l1_c0 AT > memisl
 
 
   .heap : ALIGN(16) {
