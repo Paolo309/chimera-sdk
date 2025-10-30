@@ -243,19 +243,23 @@ int32_t testReturn(void *args) {
 
         // printf("[cycle=%u] Checking MXITA from core %d\n", snrt_mcycle(), core_idx);
 
-        // printf("Starting DUT vs REF comparison \n");
-        // int errors = 0;
-        // float *out = (float*) local_output_matrix;
-        // for (int i = 0; i < M*N*P*Q; i++) {
-        //     if (i % 32==0) printf("Current i is %d\n", i);
-        //     float dut = out[i];
-        //     float ref = output_matrix[i];
-        //     if ((dut / ref < 0.99)  || (dut / ref > 1.01 )) {
-        //         errors += 1;
-        //         printf("DUT OUT VS REF OUT: %f vs %f\n", dut, ref);
-        //     }
-        // }
-        // printf("Number of errors: %d\n", errors);
+        printf("Starting DUT vs REF comparison \n");
+        int total_comparisons = M*N*P*Q;
+        int errors = 0;
+        float *out = (float*) local_output_matrix;
+        for (int i = 0; i < total_comparisons; i++) {
+            // if (i % 32==0) printf("Current i is %d\n", i);
+            float dut = out[i];
+            float ref = output_matrix[i];
+            float err = dut - ref;
+            float abs_err = fabs(err);
+            float max_err = 1e-2 * fabs(ref);
+            if (abs_err > max_err) {
+                errors += 1;
+                printf("DUT OUT VS REF OUT [%d]: %f vs %f\n", i, dut, ref);
+            }
+        }
+        printf("Number of errors: %d over %d, %.2f%%\n", errors, total_comparisons, 100.f*errors/total_comparisons);
     }
 
     snrt_cluster_hw_barrier();
