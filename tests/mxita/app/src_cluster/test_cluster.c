@@ -7,6 +7,7 @@
 // Include Standard Libraries
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 
 // Include Application Headers
 #include "test_cluster.h"
@@ -21,6 +22,11 @@
 
 // Include Runtime Headers
 #include "snrt.h"
+
+// #if MIN_CHUNK_SIZE != 64
+// #error "MIN_CHUNK_SIZE must be 64"
+// #endif
+#define MXITA_TCDM_ALIGN 64
 
 #define M 8
 #define N 4
@@ -66,7 +72,6 @@ int mxita_compare_float(float* dut_output, float* ref_output, int array_len){
   return errors;
 }
 
-volatile int status1; // XXX should it be thread local (static __thread)?
 void* __attribute__((__section__(".cbss"))) local_input_matrix;
 void* __attribute__((__section__(".cbss"))) local_weight_matrix;
 void* __attribute__((__section__(".cbss"))) local_input_scale;
@@ -74,6 +79,18 @@ void* __attribute__((__section__(".cbss"))) local_weight_scale;
 void* __attribute__((__section__(".cbss"))) local_output_matrix;
 
 volatile int running_mxita = 0;
+
+inline void *mxita_l1_alloc(size_t size, size_t align) {
+    snrt_allocator_t *alloc = snrt_l1_allocator();
+
+    size = ALIGN_UP(size, align);
+
+    size_t pad = ALIGN_UP(alloc->next, align) - alloc->next;
+    void *ret = (void *)(alloc->next + pad);
+    alloc->next += size + pad;
+
+    return ret;
+}
 
 
 /**
@@ -112,8 +129,6 @@ void clusterInterruptHandler() {
 int32_t __attribute__((__section__(".cbss"))) * pointer_input;
 int32_t __attribute__((__section__(".cbss"))) * pointer_output;
 
-// uint32_t __attribute__((__section__(".cdata"))) result[512] = { 0 };
-// uint32_t result[512];
 
 
 /**
@@ -158,11 +173,11 @@ int32_t testReturn(void *args) {
     offloadArgs_t *argsStruct = (offloadArgs_t *)args;
 
     if (snrt_is_dm_core()) {
-        local_input_matrix = snrt_l1_alloc(input_mat_size);
-        local_weight_matrix = snrt_l1_alloc(weight_mat_size);
-        local_input_scale = snrt_l1_alloc(input_scale_size);
-        local_weight_scale = snrt_l1_alloc(weight_scale_size);
-        local_output_matrix = snrt_l1_alloc(output_mat_size);
+        local_input_matrix = mxita_l1_alloc(input_mat_size, MXITA_TCDM_ALIGN);
+        local_weight_matrix = mxita_l1_alloc(weight_mat_size, MXITA_TCDM_ALIGN);
+        local_input_scale = mxita_l1_alloc(input_scale_size, MXITA_TCDM_ALIGN);
+        local_weight_scale = mxita_l1_alloc(weight_scale_size, MXITA_TCDM_ALIGN);
+        local_output_matrix = mxita_l1_alloc(output_mat_size, MXITA_TCDM_ALIGN);
 
         snrt_dma_start_1d(local_input_matrix, input_matrix, input_mat_size);
         snrt_dma_start_1d(local_weight_matrix, weight_matrix, weight_mat_size);
@@ -177,7 +192,7 @@ int32_t testReturn(void *args) {
     if (core_idx == 2) {
         printf("[cycle=%u] Starting MXITA from core %d\n", snrt_mcycle(), core_idx);
         
-        // TODO probably better to instantiate status1 here
+        volatile int status1;
         do {
             status1 = hwpe_acquire_job();
         } while (status1 < 0);
@@ -251,17 +266,6 @@ int32_t testReturn(void *args) {
                           (volatile void *)local_output_matrix,
                           bytes);
         snrt_dma_wait_all();
-
-        // memcpy(argsStruct->result, (void *)result, bytes);
-
-        // for (int i = 0; i < 10; i++) { // print as hex
-        //     // uint32_t* out = (uint32_t*) argsStruct->result;
-        //     printf("Output matrix[%d]: 0x%08x\n", i, argsStruct->result[i]);
-        // }
-        for (int i = 0; i < 10; i++) {
-            printf("result[%d] = 0x%08x\n", i, ((uint32_t*)result)[i]);
-        }
-        // TODO still needs output comparison
     }
 
     snrt_cluster_hw_barrier();
