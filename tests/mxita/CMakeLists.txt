@@ -1,0 +1,11 @@
+# Copyright 2024 ETH Zurich and University of Bologna.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Philip Wiese <wiesep@iis.ee.ethz.ch>
+
+# Add test for app
+add_subdirectory(app)
+
+# Add test for misc
+add_subdirectory(misc)

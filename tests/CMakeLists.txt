@@ -7,8 +7,9 @@
 
 # Define mappings for tests
 set(TEST_MAPPINGS
+    chimera-mxita:chimera-mxita,host/alloc,host/picolibc,host/printf,host/returnZero,host/uartSimple,mxita/app,mxita/misc
     chimera-convolve:chimera-convolve,host/alloc,host/picolibc,host/printf,host/returnZero,host/uartSimple,snitchCluster/matmul,snitchCluster/snrt,snitchCluster/simpleOffload
-    chimera-open:chimera-open,host/alloc,host/picolibc,host/printf,host/returnZero,host/uartSimple,snitchCluster/matmul,snitchCluster/snrt,snitchCluster/simpleOffload,mxita/app
+    chimera-open:chimera-open,host/alloc,host/picolibc,host/printf,host/returnZero,host/uartSimple,snitchCluster/matmul,snitchCluster/snrt,snitchCluster/simpleOffload
     chimera-host:chimera-host,host/alloc,host/picolibc,host/printf,host/returnZero,host/uartSimple
 )
 

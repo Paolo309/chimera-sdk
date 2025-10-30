@@ -8,6 +8,7 @@
 # Device Libraries
 ################################################################################
 set(DEVICE_MAPPINGS
+    chimera-mxita:snitch_cluster
     chimera-convolve:snitch_cluster
     chimera-open:snitch_cluster
     chimera-host:
