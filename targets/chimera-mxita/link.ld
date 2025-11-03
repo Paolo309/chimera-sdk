@@ -104,12 +104,6 @@ SECTIONS {
     __l1_c0_end = .;
   } > l1_c0
 
-  .l1_c1 : ALIGN(16) {
-    __l1_c1_start = .;
-    *(.l1_c1 .l1_c1.*)
-    __l1_c1_end = .;
-  } > l1_c1
-
   .dram :
   {
     *(.dram)
