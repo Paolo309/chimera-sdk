@@ -122,7 +122,9 @@ uint32_t clint_get_core_freq(uint32_t ref_freq, uint32_t ref_time_inv) {
         end = clint_get_mtime();
     } while (clint_mtime_less_than(end, (clint_mtime_t){start.low + num_ticks, start.high}));
 
-    return ((end_mcycle - start_mcycle) * ref_freq) / (end.low - start.low);
+    // Shift right by 5 to avoid overflow: imposes ref_freq >= 32 Hz, which shouldn't be an issue
+    // XXX it might limit range of measurable frequencies
+    return (((end_mcycle - start_mcycle) * (ref_freq >> 5)) / (end.low - start.low)) << 5;
 }
 
 /**
