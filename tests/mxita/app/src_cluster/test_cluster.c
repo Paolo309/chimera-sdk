@@ -79,6 +79,7 @@ void* __attribute__((__section__(".cbss"))) local_weight_scale;
 void* __attribute__((__section__(".cbss"))) local_output_matrix;
 
 volatile int running_mxita = 0;
+volatile int mxita_core_idx = 0;
 
 inline void *mxita_l1_alloc(size_t size, size_t align) {
     snrt_allocator_t *alloc = snrt_l1_allocator();
@@ -102,8 +103,9 @@ inline void *mxita_l1_alloc(size_t size, size_t align) {
 void clusterInterruptHandler() {
     _SETUP_GP();
 
+    // FIXME the interrupt should be naked (but this still works)
     if (running_mxita) {
-        snrt_hwpe_clr_mxip(2); // TODO just get it from somewhere (e.g. snrt_cluster_core_idx, or variable)
+        * (volatile uint32_t*)HWPE_MXIP_ADDR = (1 << mxita_core_idx);
         running_mxita = 0;
     }
 
@@ -219,6 +221,7 @@ int32_t testReturn(void *args) {
         // uint32_t start_cycle = snrt_mcycle();
 
         running_mxita = 1; // to tell the interrupt handler to clear mxip
+        mxita_core_idx = core_idx;
         hwpe_trigger_job();
 
         // insert some nops to delay the core
