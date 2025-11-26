@@ -93,7 +93,6 @@ int main() {
     // printf("conversion to float: %f\n", f); // expected: 42.42
 
     set_snitchCluster_clockGating(CLUSTER, 1);
-    set_snitchCluster_reset(CLUSTER, 1);
 
     // printf("done\n");
     // printf_log("Cluster result[33]: %d\n", offloadArgs.result[33]);

@@ -244,7 +244,11 @@ int32_t testReturn(void *args) {
         // printf("[cycle=%u] Checking MXITA from core %d\n", snrt_mcycle(), core_idx);
 
         printf("Starting DUT vs REF comparison \n");
-        int total_comparisons = M*N*P*Q;
+        
+        if (total_comparisons == M*N*P*Q) {
+            printf("Full comparison\n");
+        }
+
         int errors = 0;
         float *out = (float*) local_output_matrix;
         for (int i = 0; i < total_comparisons; i++) {
