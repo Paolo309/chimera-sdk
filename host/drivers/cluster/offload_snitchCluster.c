@@ -232,7 +232,7 @@ void offload_snitchCluster(void *function, void *args, void **stack_ptr, uint8_t
     }
 
     // Prevent race contidtion by waiting for all cores to clear the busy flag
-    for (volatile int i = 0; i < 5000; i++);
+    for (volatile int i = 0; i < 10; i++);
 }
 
 /**

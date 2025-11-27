@@ -101,6 +101,7 @@ inline void *mxita_l1_alloc(size_t size, size_t align) {
  */
 // __attribute__((naked)) 
 void clusterInterruptHandler() {
+    _SET_CLUSTER_BUSY();
     _SETUP_GP();
 
     // FIXME the interrupt should be naked (but this still works)
