@@ -22,15 +22,15 @@
 // Import HAL Headers
 // #include "interface_api.h"
 
-// #define STACK_ADDRESS_0 (CLUSTER_0_BASE + 0x20000 - 1)
-// #define STACK_ADDRESS_4 (CLUSTER_4_BASE + 0x20000 - 1)
-
 #define CLUSTER 0
 #define STACK_ADDRESS (_chimera_clusterBase[CLUSTER] + 0x20000 - 1)
 
+// Cluster syscall communication
 extern uintptr_t volatile tohost, fromhost;
+void handle_cluster_syscalls(int cluster_id);
 
 static offloadArgs_t offloadArgs = {0};
+
 
 int main() {
     // void *stack_cluster_ptr[CLUSTER_0_NUMCORES];
@@ -45,13 +45,28 @@ int main() {
     for (volatile int i = 0; i < 10; i++);
     set_snitchCluster_reset(CLUSTER, 0);
 
-    printf("offloading . . .\n");
+    printf("offloading...\r\n");
     offload_snitchCluster(testReturn, &offloadArgs, stack_cluster_ptr, CLUSTER);
 
-    printf("Waiting for cluster to finish...\n");
+    printf("Waiting for cluster to finish...\r\n");
 
-    // Handle tohost/fromhost communication
-    while (snitchCluster_busy(CLUSTER)) {
+    // Handle tohost/fromhost communication, returns when cluster is done
+    handle_cluster_syscalls(CLUSTER);
+
+    uint32_t retVal = wait_snitchCluster_return(CLUSTER);
+    retVal = retVal >> 1;
+
+    set_snitchCluster_clockGating(CLUSTER, 1);
+
+    printf_log("Cluster returned: %d\r\n", retVal);
+    printf_log("Cycles: %u\r\n\n", offloadArgs.cycles);
+
+    return retVal;
+}
+
+
+void handle_cluster_syscalls(int cluster_id) {
+    while (snitchCluster_busy(cluster_id)) {
         // Wait for tohost to be set by the device
         if (tohost != 0) {
             volatile uint32_t syscall_addr = tohost;
@@ -59,45 +74,23 @@ int main() {
             // Acknowledge tohost
             tohost = 0;
 
-            // printf("Host received tohost: %#x\n", tohost);
+            // printf("Host received tohost: %#x\r\n", tohost);
 
             // Cluster does tohost = (uintptr_t)buf->hdr.syscall_mem;
             uint32_t *syscall_mem = (uint32_t *)syscall_addr;
 
-            // printf("Host handling syscall %u: fd=%#x, buf=%p, len=%#x\n", syscall_mem[0],
+            // printf("Host handling syscall %u: fd=%#x, buf=%p, len=%#x\r\n", syscall_mem[0],
             //        syscall_mem[1], (void *)syscall_mem[2], syscall_mem[3]);
             if (syscall_mem[0] == 64) { // sys_write
                 fwrite((const void *)syscall_mem[2], 1, syscall_mem[3], (FILE *)syscall_mem[1]);
                 fflush((FILE *)syscall_mem[1]);
+                // printf_log("handled syscall: %u\r\n", syscall_mem[0]);
             } else {
-                printf_log("Unknown syscall: %u\n", syscall_mem[0]);
+                printf_log("Unknown syscall: %u\r\n", syscall_mem[0]);
             }
 
             // Notify cluster that syscall is done
             fromhost = syscall_addr;
         }
     }
-
-    uint32_t retVal = wait_snitchCluster_return(CLUSTER);
-    retVal = retVal >> 1;
-
-    // printf("result_ptr from cluster: %p\n", offloadArgs.result_ptr);
-
-    // for (int i = 0; i < 10; i++) {
-    //     printf("Cluster result[%d]: %d\n", i, offloadArgs.result[i]);
-    // }
-
-    // unsigned int n = 0x4229AE14;
-    // float f = *(float *)&n;
-    // float f = 42.42f;
-    // printf("conversion to float: %f\n", f); // expected: 42.42
-
-    set_snitchCluster_clockGating(CLUSTER, 1);
-
-    // printf("done\n");
-    // printf_log("Cluster result[33]: %d\n", offloadArgs.result[33]);
-    printf_log("Cluster returned: %d\n", retVal);
-    printf_log("Cycles taken by core 2: %u\n", offloadArgs.cycles);
-
-    return retVal;
 }

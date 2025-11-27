@@ -81,6 +81,15 @@ void* __attribute__((__section__(".cbss"))) local_output_matrix;
 volatile int running_mxita = 0;
 volatile int mxita_core_idx = 0;
 
+/**
+ * @brief L1 allocator allowing custom alignment.
+ * Can be used interchangeably with default allocator.
+ *
+ * @param size Size of the allocation in bytes.
+ * @param align Alignment of the allocation in bytes.
+ *
+ * @returns void* Pointer to the allocated memory.
+ */
 inline void *mxita_l1_alloc(size_t size, size_t align) {
     snrt_allocator_t *alloc = snrt_l1_allocator();
 
@@ -106,7 +115,7 @@ void clusterInterruptHandler() {
 
     // FIXME the interrupt should be naked (but this still works)
     if (running_mxita) {
-        * (volatile uint32_t*)HWPE_MXIP_ADDR = (1 << mxita_core_idx);
+        snrt_hwpe_clr_mxip(mxita_core_idx);
         running_mxita = 0;
     }
 
@@ -129,10 +138,6 @@ void clusterInterruptHandler() {
     );
 }
 
-int32_t __attribute__((__section__(".cbss"))) * pointer_input;
-int32_t __attribute__((__section__(".cbss"))) * pointer_output;
-
-
 
 /**
  * @brief Main function of the cluster test.
@@ -147,9 +152,6 @@ int32_t testReturn(void *args) {
     snrt_init();
 
     uint32_t core_idx = snrt_cluster_core_idx();
-
-    static volatile uint64_t prog_cycles = 0;
-    static volatile uint64_t mxita_cycles  = 0;
 
     // Clear interrupt from host
     snrt_int_clr_mcip();
@@ -193,14 +195,14 @@ int32_t testReturn(void *args) {
     snrt_cluster_hw_barrier();
 
     if (core_idx == 2) {
-        printf("[cycle=%u] Starting MXITA from core %d\n", snrt_mcycle(), core_idx);
+        printf("[cycle=%u] Starting MXITA from core %d\r\n", snrt_mcycle(), core_idx);
         
         volatile int status1;
         do {
             status1 = hwpe_acquire_job();
         } while (status1 < 0);
 
-        printf("[cycle=%u] MXITA status %d acquired from core %d\n", snrt_mcycle(), status1, core_idx);
+        printf("[cycle=%u] MXITA status %d acquired from core %d\r\n", snrt_mcycle(), status1, core_idx);
 
         //uint64_t t0 = (uint64_t)snrt_mcycle();
 
@@ -214,49 +216,36 @@ int32_t testReturn(void *args) {
             (unsigned int) local_weight_scale
         );
 
-        // uint64_t t1 = (uint64_t)snrt_mcycle();
-        // prog_cycles = t1 - t0;
-
-        printf("[cycle=%u] MXITA configured from core %d\n", snrt_mcycle(), core_idx);
-
-        // uint32_t start_cycle = snrt_mcycle();
+        printf("[cycle=%u] MXITA configured from core %d\r\n", snrt_mcycle(), core_idx);
 
         running_mxita = 1; // to tell the interrupt handler to clear mxip
         mxita_core_idx = core_idx;
+
+        volatile uint32_t start_cycle = snrt_mcycle();
+
         hwpe_trigger_job();
-
-        // insert some nops to delay the core
-        // for (volatile int i = 0; i < 1800; i++) {
-        //     asm volatile("nop");
-        // }
-
-        // uint64_t t2 = (uint64_t)snrt_mcycle();
-
         snrt_wfi();
 
-        // uint64_t t3 = (uint64_t)snrt_mcycle();
-        // mxita_cycles = t3 - t2;
+        // XXX not accurate, also accounts for interrupt handler
+        volatile uint32_t end_cycle = snrt_mcycle();
+        argsStruct->cycles = end_cycle - start_cycle;
 
-        // snrt_hwpe_clr_mxip(core_idx); // DONE IN THE INTERRUPT HANDLER
+        printf("[cycle=%u] MXITA interrupt from core %d\r\n", snrt_mcycle(), core_idx);
 
-        printf("[cycle=%u] MXITA interrupt from core %d\n", snrt_mcycle(), core_idx);
+        printf("Starting DUT vs REF comparison \r\n");
 
-        // printf("[cycle=%u] MXITA interrupt clear from core %d\n", snrt_mcycle(), core_idx);
-
-        // uint32_t finish_cycle = snrt_mcycle();
-
-        // printf("[cycle=%u] Checking MXITA from core %d\n", snrt_mcycle(), core_idx);
-
-        printf("Starting DUT vs REF comparison \n");
+        // TODO make it depend on compiler flag
+        int total_comparisons = M*N*P*Q;
+        // int total_comparisons = 5;
         
         if (total_comparisons == M*N*P*Q) {
-            printf("Full comparison\n");
+            printf("Full comparison\r\n");
         }
 
         int errors = 0;
         float *out = (float*) local_output_matrix;
         for (int i = 0; i < total_comparisons; i++) {
-            // if (i % 32==0) printf("Current i is %d\n", i);
+            // if (i % 32==0) printf("Current i is %d\r\n", i);
             float dut = out[i];
             float ref = output_matrix[i];
             float err = dut - ref;
@@ -264,23 +253,23 @@ int32_t testReturn(void *args) {
             float max_err = 1e-2 * fabs(ref);
             if (abs_err > max_err) {
                 errors += 1;
-                printf("DUT OUT VS REF OUT [%d]: %f vs %f\n", i, dut, ref);
+                printf("DUT OUT VS REF OUT [%d]: %f vs %f\r\n", i, dut, ref);
             }
         }
-        printf("Number of errors: %d over %d, %.2f%%\n", errors, total_comparisons, 100.f*errors/total_comparisons);
+        printf("Number of errors: %d over %d, %.2f%%\r\n", errors, total_comparisons, 100.f*errors/total_comparisons);
     }
 
     snrt_cluster_hw_barrier();
     
-    if (snrt_is_dm_core()) {        
-        size_t bytes = sizeof(result);
-        snrt_dma_start_1d((volatile void *)result,
-                          (volatile void *)local_output_matrix,
-                          bytes);
-        snrt_dma_wait_all();
-    }
-
-    snrt_cluster_hw_barrier();
+    // not needed for FPGA (it was useful for verify.py)
+    // if (snrt_is_dm_core()) {        
+    //     size_t bytes = sizeof(result);
+    //     snrt_dma_start_1d((volatile void *)result,
+    //                       (volatile void *)local_output_matrix,
+    //                       bytes);
+    //     snrt_dma_wait_all();
+    // }
+    // snrt_cluster_hw_barrier();
 
     return 0;
 }
