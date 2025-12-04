@@ -45,10 +45,14 @@ int main() {
     for (volatile int i = 0; i < 10; i++);
     set_snitchCluster_reset(CLUSTER, 0);
 
-    printf("offloading...\r\n");
-    offload_snitchCluster(testReturn, &offloadArgs, stack_cluster_ptr, CLUSTER);
+#if defined(HARDWARE_BACKEND_RTL)
+    offloadArgs.is_rtl = 1;
+#endif
 
-    printf("Waiting for cluster to finish...\r\n");
+    printf("=== MXITA Test @ " BACKEND_NAME " ===\r\n");
+
+    printf_log("offloading...\r\n");
+    offload_snitchCluster(testReturn, &offloadArgs, stack_cluster_ptr, CLUSTER);
 
     // Handle tohost/fromhost communication, returns when cluster is done
     handle_cluster_syscalls(CLUSTER);
@@ -59,7 +63,7 @@ int main() {
     set_snitchCluster_clockGating(CLUSTER, 1);
 
     printf_log("Cluster returned: %d\r\n", retVal);
-    printf_log("Cycles: %u\r\n\n", offloadArgs.cycles);
+    printf_log("Cycles: %u\r\n\r\n", offloadArgs.cycles);
 
     return retVal;
 }

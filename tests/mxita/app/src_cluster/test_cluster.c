@@ -23,9 +23,6 @@
 // Include Runtime Headers
 #include "snrt.h"
 
-// #if MIN_CHUNK_SIZE != 64
-// #error "MIN_CHUNK_SIZE must be 64"
-// #endif
 #define MXITA_TCDM_ALIGN 64
 
 #define M 8
@@ -40,8 +37,11 @@
 #define HWPE_WRITE(value, offset) *(int *)(HWPE_ADDR_BASE + offset) = value
 #define HWPE_READ(offset) *(int *)(HWPE_ADDR_BASE + offset)
 
+// tolerance for output comparison
+#define RELATIVE_TOLERANCE 1e-2
+
 // MXITA HWPE cfg
-void mxita_cfg(uint8_t k_size, uint16_t l_size, uint8_t lk_size, unsigned int input_ptr, unsigned int weight_ptr, unsigned int output_ptr, unsigned int input_scale_ptr, unsigned int weight_scale_ptr) {
+void mxita_cfg(uint8_t k_size, uint16_t l_size, uint8_t lk_size, unsigned int input_ptr, unsigned int weight_ptr, unsigned int output_ptr, unsigned int input_scale_ptr, unsigned int weight_scale_ptr, unsigned int bf16_sel) {
   uint32_t l_dims_reg = 0;
   uint32_t ctrl_stream_reg = 0;
   l_dims_reg = ((uint32_t)lk_size << 24) | ((uint32_t)l_size << 8) | ((uint32_t)k_size << 0);
@@ -52,6 +52,7 @@ void mxita_cfg(uint8_t k_size, uint16_t l_size, uint8_t lk_size, unsigned int in
   HWPE_WRITE(0, 0x30); // reg_ctrl_stream
   HWPE_WRITE(input_scale_ptr, 0x34);
   HWPE_WRITE(weight_scale_ptr, 0x38);
+  HWPE_WRITE(bf16_sel, 0x3C);
 }
 
 static inline void hwpe_trigger_job() { HWPE_WRITE(0, MXITA_TRIGGER); }
@@ -62,14 +63,17 @@ inline void snrt_hwpe_clr_mxip(uint32_t core_idx) {
 
 static inline int hwpe_acquire_job() { return HWPE_READ(MXITA_ACQUIRE); }
 
-int mxita_compare_float(float* dut_output, float* ref_output, int array_len){
-  int errors = 0;
-  for (int i = 0; i < array_len; i++){
-    if ((dut_output[i] / ref_output[i] < 0.99)  || (dut_output[i] / ref_output[i] > 1.01 )) {
-      errors += 1;
-    }
-  }
-  return errors;
+/**
+ * @brief Reinterpret uint32_t as float (no conversion).
+ *
+ * @param b uint32_t value to convert.
+ *
+ * @returns float Converted float value.
+ */
+static inline float uint32_to_float(uint32_t b) {
+    float f;
+    memcpy(&f, &b, sizeof(f));
+    return f;
 }
 
 void* __attribute__((__section__(".cbss"))) local_input_matrix;
@@ -159,9 +163,15 @@ int32_t testReturn(void *args) {
     // Enable accelerator interrupts
     snrt_interrupt_enable(IRQ_M_ACC);
 
+    offloadArgs_t *argsStruct = (offloadArgs_t *)args;
+
     uint32_t NBYTES_IW_MAT = sizeof(int8_t);
     uint32_t NBYTES_IW_SCALE = sizeof(uint8_t);
     uint32_t NBYTES_OUT_MAT = sizeof(float);
+
+    // FP32 TO BF16
+    uint32_t bf16_sel = argsStruct->bf16_sel;
+    // uint32_t bf16_sel = 1;
 
     // DEFAULT
     uint8_t k_size = 8;
@@ -172,10 +182,13 @@ int32_t testReturn(void *args) {
     uint16_t weight_mat_size = M*Q*l_size*NBYTES_IW_MAT;
     uint16_t input_scale_size = (N*P*lk_size*NBYTES_IW_SCALE < 512) ? 512 : N*P*lk_size*NBYTES_IW_SCALE;
     uint16_t weight_scale_size = (M*Q*lk_size*NBYTES_IW_SCALE < 512) ? 512 : M*Q*lk_size*NBYTES_IW_SCALE;
-    uint16_t output_mat_size = M*N*P*Q*NBYTES_OUT_MAT;
+    uint16_t output_mat_size = bf16_sel ? M*N*P*Q*NBYTES_OUT_MAT/2 : M*N*P*Q*NBYTES_OUT_MAT;
 
-
-    offloadArgs_t *argsStruct = (offloadArgs_t *)args;
+    if (core_idx == 0) {
+        printf("(M, N, P, Q) = (%d, %d, %d, %d)\r\n", M, N, P, Q);
+        printf("(K, L, LK)   = (%d, %d, %d)\r\n", k_size, l_size, lk_size);
+        printf("bf16: %s\r\n", bf16_sel ? "ON" : "OFF");
+    }
 
     if (snrt_is_dm_core()) {
         local_input_matrix = mxita_l1_alloc(input_mat_size, MXITA_TCDM_ALIGN);
@@ -195,14 +208,14 @@ int32_t testReturn(void *args) {
     snrt_cluster_hw_barrier();
 
     if (core_idx == 2) {
-        printf("[cycle=%u] Starting MXITA from core %d\r\n", snrt_mcycle(), core_idx);
+        printf("[cycle=%7u] Starting MXITA from core %d\r\n", snrt_mcycle(), core_idx);
         
         volatile int status1;
         do {
             status1 = hwpe_acquire_job();
         } while (status1 < 0);
 
-        printf("[cycle=%u] MXITA status %d acquired from core %d\r\n", snrt_mcycle(), status1, core_idx);
+        printf("[cycle=%7u] MXITA status %d acquired from core %d\r\n", snrt_mcycle(), status1, core_idx);
 
         //uint64_t t0 = (uint64_t)snrt_mcycle();
 
@@ -213,10 +226,11 @@ int32_t testReturn(void *args) {
             (unsigned int) local_weight_matrix,
             (unsigned int) local_output_matrix,
             (unsigned int) local_input_scale,
-            (unsigned int) local_weight_scale
+            (unsigned int) local_weight_scale,
+            bf16_sel
         );
 
-        printf("[cycle=%u] MXITA configured from core %d\r\n", snrt_mcycle(), core_idx);
+        printf("[cycle=%7u] MXITA configured from core %d\r\n", snrt_mcycle(), core_idx);
 
         running_mxita = 1; // to tell the interrupt handler to clear mxip
         mxita_core_idx = core_idx;
@@ -230,27 +244,28 @@ int32_t testReturn(void *args) {
         volatile uint32_t end_cycle = snrt_mcycle();
         argsStruct->cycles = end_cycle - start_cycle;
 
-        printf("[cycle=%u] MXITA interrupt from core %d\r\n", snrt_mcycle(), core_idx);
+        printf("[cycle=%7u] MXITA interrupt from core %d\r\n", snrt_mcycle(), core_idx);
 
         printf("Starting DUT vs REF comparison \r\n");
 
-        // TODO make it depend on compiler flag
-        int total_comparisons = M*N*P*Q;
-        // int total_comparisons = 5;
+        int total_comparisons = output_mat_size / NBYTES_OUT_MAT;
         
-        if (total_comparisons == M*N*P*Q) {
-            printf("Full comparison\r\n");
+        // for RTL, we just compare a few values
+        if (argsStruct->is_rtl) {
+            total_comparisons = 5;
         }
 
+        printf("Performing %d comparisons...\r\n", total_comparisons);
+
         int errors = 0;
-        float *out = (float*) local_output_matrix;
+        float *out_float = (float*) local_output_matrix;
+        uint16_t *out_bf16 = (uint16_t*) local_output_matrix;
         for (int i = 0; i < total_comparisons; i++) {
-            // if (i % 32==0) printf("Current i is %d\r\n", i);
-            float dut = out[i];
-            float ref = output_matrix[i];
+            float dut = bf16_sel ? uint32_to_float((uint32_t)out_bf16[i] << 16) : out_float[i];
+            float ref = bf16_sel ? output_matrix[i ^ 1] : output_matrix[i];
             float err = dut - ref;
             float abs_err = fabs(err);
-            float max_err = 1e-2 * fabs(ref);
+            float max_err = RELATIVE_TOLERANCE * fabs(ref);
             if (abs_err > max_err) {
                 errors += 1;
                 printf("DUT OUT VS REF OUT [%d]: %f vs %f\r\n", i, dut, ref);
