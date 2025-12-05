@@ -31,6 +31,18 @@ void handle_cluster_syscalls(int cluster_id);
 
 static offloadArgs_t offloadArgs = {0};
 
+uint32_t mxita_default_test(void *stack_cluster_ptr) {
+    set_snitchCluster_clockGating(CLUSTER, 0);
+    offload_snitchCluster(testReturn, &offloadArgs, stack_cluster_ptr, CLUSTER);
+
+    // Handle tohost/fromhost communication, returns when cluster is done
+    handle_cluster_syscalls(CLUSTER);
+
+    uint32_t retVal = wait_snitchCluster_return(CLUSTER);
+    set_snitchCluster_clockGating(CLUSTER, 1);
+
+    return retVal >> 1;
+}
 
 int main() {
     // void *stack_cluster_ptr[CLUSTER_0_NUMCORES];
@@ -51,21 +63,22 @@ int main() {
 
     printf("=== MXITA Test @ " BACKEND_NAME " ===\r\n");
 
-    printf_log("offloading...\r\n");
-    offload_snitchCluster(testReturn, &offloadArgs, stack_cluster_ptr, CLUSTER);
+    uint32_t retVal;
+    uint32_t failed_tests = 0;
 
-    // Handle tohost/fromhost communication, returns when cluster is done
-    handle_cluster_syscalls(CLUSTER);
+    printf_log(" - Test 0 | default | BF32\r\n");
+    offloadArgs.bf16_sel = 0; // BF32
+    retVal = mxita_default_test(stack_cluster_ptr);
+    printf_log("[%s] Cluster returned: %d\r\n\r\n", retVal == 0 ? "PASS" : "FAIL", retVal);
+    failed_tests += (retVal != 0);
 
-    uint32_t retVal = wait_snitchCluster_return(CLUSTER);
-    retVal = retVal >> 1;
+    printf_log(" - Test 1 | default | BF16\r\n");
+    offloadArgs.bf16_sel = 1; // BF16
+    retVal = mxita_default_test(stack_cluster_ptr);
+    printf_log("[%s] Cluster returned: %d\r\n\r\n", retVal == 0 ? "PASS" : "FAIL", retVal);
+    failed_tests += (retVal != 0);
 
-    set_snitchCluster_clockGating(CLUSTER, 1);
-
-    printf_log("Cluster returned: %d\r\n", retVal);
-    printf_log("Cycles: %u\r\n\r\n", offloadArgs.cycles);
-
-    return retVal;
+    return failed_tests;
 }
 
 
