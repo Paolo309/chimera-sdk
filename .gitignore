@@ -19,3 +19,7 @@ docs/_autosummary
 # Dept Install Dir
 install
 toolchain
+
+# Deeploy
+*.sif
+
