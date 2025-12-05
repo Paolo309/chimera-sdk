@@ -3,4 +3,4 @@
 	url = https://github.com/pulp-platform/opentitan_peripherals.git
 [submodule "devices/snitch_cluster/third_party/snitch-sdk"]
 	path = devices/snitch_cluster/third_party/snitch-sdk
-	url = https://github.com/Xeratec/snitch-sdk.git
+	url = https://github.com/Paolo309/snitch-sdk.git
