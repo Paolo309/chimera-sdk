@@ -13,4 +13,6 @@ void clusterInterruptHandler();
 
 int32_t testReturn(void *args);
 
+int32_t testOtherCluster(void *args);
+
 #endif //_TEST_CLUSTER_INCLUDE_GUARD_

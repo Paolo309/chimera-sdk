@@ -163,6 +163,11 @@ int32_t testReturn(void *args) {
     // Enable accelerator interrupts
     snrt_interrupt_enable(IRQ_M_ACC);
 
+    if (core_idx == 0) {
+        printf("Running MXITA on cluster %d with %d cores\r\n", snrt_cluster_idx(), _chimera_numCores[snrt_cluster_idx()]);
+    }
+    snrt_cluster_hw_barrier();
+
     offloadArgs_t *argsStruct = (offloadArgs_t *)args;
 
     uint32_t NBYTES_IW_MAT = sizeof(int8_t);
@@ -286,6 +291,21 @@ int32_t testReturn(void *args) {
     //     snrt_dma_wait_all();
     // }
     // snrt_cluster_hw_barrier();
+
+    return 0;
+}
+
+int32_t testOtherCluster(void *args) {
+    snrt_init();
+
+    uint32_t core_idx = snrt_cluster_core_idx();
+
+    snrt_int_clr_mcip();
+    
+    if (core_idx == 5) {
+        printf("Hello from cluster %d with %d cores\r\n", snrt_cluster_idx(), _chimera_numCores[snrt_cluster_idx()]);
+    }
+    snrt_cluster_hw_barrier();
 
     return 0;
 }

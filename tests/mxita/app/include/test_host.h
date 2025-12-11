@@ -21,4 +21,9 @@ typedef struct {
     uint32_t cycles;
 } offloadArgs_t;
 
+typedef struct {
+    const char *name;
+    int (*fn)(void);
+} test_entry_t;
+
 #endif //_TEST_HOST_INCLUDE_GUARD_

@@ -22,40 +22,102 @@
 // Import HAL Headers
 // #include "interface_api.h"
 
-#define CLUSTER 0
-#define STACK_ADDRESS (_chimera_clusterBase[CLUSTER] + 0x20000 - 1)
+#define STACK_ADDRESS(idx) \
+    (_chimera_clusterBase[(idx)] + 0x20000 - 1)
 
 // Cluster syscall communication
 extern uintptr_t volatile tohost, fromhost;
 void handle_cluster_syscalls(int cluster_id);
 
+void *stack_cluster_0_ptr[CLUSTER_0_NUMCORES];
+void *stack_cluster_1_ptr[CLUSTER_1_NUMCORES];
+void **stack_cluster_ptr[] = {
+    stack_cluster_0_ptr,
+    stack_cluster_1_ptr
+};
+
+void reset_cluster(int cluster_id) {
+    set_snitchCluster_clockGating(cluster_id, 0);
+    set_snitchCluster_reset(cluster_id, 1);
+    for (volatile int i = 0; i < 10; i++);
+    set_snitchCluster_reset(cluster_id, 0);
+    set_snitchCluster_clockGating(cluster_id, 1);
+}
+
 static offloadArgs_t offloadArgs = {0};
 
-uint32_t mxita_default_test(void *stack_cluster_ptr) {
-    set_snitchCluster_clockGating(CLUSTER, 0);
-    offload_snitchCluster(testReturn, &offloadArgs, stack_cluster_ptr, CLUSTER);
+uint32_t mxita_default_test(int cluster_idx) {
+    set_snitchCluster_clockGating(cluster_idx, 0);
+    offload_snitchCluster(testReturn, &offloadArgs, stack_cluster_ptr[cluster_idx], cluster_idx);
 
     // Handle tohost/fromhost communication, returns when cluster is done
-    handle_cluster_syscalls(CLUSTER);
+    handle_cluster_syscalls(cluster_idx);
 
-    uint32_t retVal = wait_snitchCluster_return(CLUSTER);
-    set_snitchCluster_clockGating(CLUSTER, 1);
+    uint32_t retVal = wait_snitchCluster_return(cluster_idx);
+    set_snitchCluster_clockGating(cluster_idx, 1);
 
     return retVal >> 1;
 }
 
+int test_00() {
+    offloadArgs.bf16_sel = 0; // BF32
+    return mxita_default_test(0);
+}
+
+int test_01() {
+    offloadArgs.bf16_sel = 1; // BF16
+    return mxita_default_test(0);
+}
+
+int test_other_cluster() {
+    int cluster_idx = 1;
+
+    set_snitchCluster_clockGating(cluster_idx, 0);
+    offload_snitchCluster(testOtherCluster, &offloadArgs, stack_cluster_ptr[cluster_idx], cluster_idx);
+
+    // Handle tohost/fromhost communication, returns when cluster is done
+    handle_cluster_syscalls(cluster_idx);
+
+    uint32_t retVal = wait_snitchCluster_return(cluster_idx);
+    set_snitchCluster_clockGating(cluster_idx, 1);
+
+    return retVal >> 1;
+}
+
+test_entry_t tests[] = {
+    { "default | BF32", test_00 },
+    { "default | BF16", test_01 },
+    { "other cluster",  test_other_cluster },
+};
+const int NUM_TESTS = sizeof(tests)/sizeof(tests[0]);
+
+int run_test(int test_idx) {
+    printf_log("==================== TEST %2d ====================\r\n", test_idx);
+    printf_log("Name      : %s\r\n", tests[test_idx].name);
+    printf_log("Cluster   : running...\r\n");
+    printf_log("-------------------------------------------------\r\n");
+    uint32_t retVal = tests[test_idx].fn();
+    printf_log("-------------------------------------------------\r\n");
+    printf_log("Result    : [%s] (return=%d)\r\n", retVal == 0 ? "PASS" : "FAIL", retVal);
+    printf_log("===============================================\r\n\r\n");
+    return retVal;
+}
+
 int main() {
-    // void *stack_cluster_ptr[CLUSTER_0_NUMCORES];
-    void *stack_cluster_ptr[NUM_CLUSTER_CORES];
-    generate_snitchCluster_SPs_uniform(0, (void *)STACK_ADDRESS, 0x2000, stack_cluster_ptr);
+    for (int cluster_idx = 0; cluster_idx < _chimera_numClusters; cluster_idx++) {
+        generate_snitchCluster_SPs_uniform(
+            cluster_idx, 
+            (void *)STACK_ADDRESS(cluster_idx),
+            0x2000, 
+            stack_cluster_ptr[cluster_idx]
+        );
+    }
+
     setup_snitchCluster_interruptHandler(clusterInterruptHandler);
 
-    // set_snitchCluster_reset(CLUSTER, 0);
-    set_snitchCluster_clockGating(CLUSTER, 0);
-
-    set_snitchCluster_reset(CLUSTER, 1);
-    for (volatile int i = 0; i < 10; i++);
-    set_snitchCluster_reset(CLUSTER, 0);
+    for (int cluster_idx = 0; cluster_idx < _chimera_numClusters; cluster_idx++) {
+        reset_cluster(cluster_idx);
+    }
 
 #if defined(HARDWARE_BACKEND_RTL)
     offloadArgs.is_rtl = 1;
@@ -63,20 +125,14 @@ int main() {
 
     printf("=== MXITA Test @ " BACKEND_NAME " ===\r\n");
 
-    uint32_t retVal;
     uint32_t failed_tests = 0;
 
-    printf_log(" - Test 0 | default | BF32\r\n");
-    offloadArgs.bf16_sel = 0; // BF32
-    retVal = mxita_default_test(stack_cluster_ptr);
-    printf_log("[%s] Cluster returned: %d\r\n\r\n", retVal == 0 ? "PASS" : "FAIL", retVal);
-    failed_tests += (retVal != 0);
+    for (int test_idx = 0; test_idx < NUM_TESTS; test_idx++) {
+        failed_tests += (run_test(test_idx) != 0);
+    }
 
-    printf_log(" - Test 1 | default | BF16\r\n");
-    offloadArgs.bf16_sel = 1; // BF16
-    retVal = mxita_default_test(stack_cluster_ptr);
-    printf_log("[%s] Cluster returned: %d\r\n\r\n", retVal == 0 ? "PASS" : "FAIL", retVal);
-    failed_tests += (retVal != 0);
+    printf_log("MXITA Test Summary: %d/%d tests passed, %d failed.\r\n", 
+        NUM_TESTS - failed_tests, NUM_TESTS, failed_tests);
 
     return failed_tests;
 }
