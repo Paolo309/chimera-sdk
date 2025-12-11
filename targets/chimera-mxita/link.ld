@@ -83,6 +83,31 @@ SECTIONS {
     __cbss_end = .;
   } > l1_c0 AT > memisl
 
+  /* Cluster Local Storage sections */
+  .cdata    :
+  {
+    . = ALIGN(32);
+    __cdata_start = .;
+    *(.cdata .cdata.*)
+    . = ALIGN(32);
+    __cdata_end = .;
+  } > l1_c1 AT > memisl
+  /* Provide symbols for the load address (LMA) of the .cdata section so
+     runtime code can copy the initialized contents from flash/main memory
+     instead of using the VMA which points into L1. */
+  __cdata_lma_start = LOADADDR(.cdata);
+  __cdata_lma_end = LOADADDR(.cdata) + SIZEOF(.cdata);
+
+  .cbss (NOLOAD) :
+  {
+    . = ALIGN(32);
+    __cbss_start = .;
+    *(.cbss .cbss.*)
+    . = ALIGN(32);
+    __cbss_end = .;
+  } > l1_c1 AT > memisl
+
+
 
   .heap : ALIGN(16) {
     __heap_start = .;
