@@ -27,7 +27,7 @@
 #define P 4
 #define Q 4
 
-#define HWPE_ADDR_BASE 0x40040000 // corresponds to `ext_mem_start_address` in snitch_cluster
+#define HWPE_ADDR_BASE 0x18040000
 #define MXITA_TRIGGER 0x00
 #define MXITA_ACQUIRE 0x04
 #define HWPE_MXIP_ADDR (HWPE_ADDR_BASE + 0x58)
@@ -167,6 +167,7 @@ int32_t testReturn(void *args) {
     if (core_idx == 0) {
         printf("Running MXITA on cluster %d with %d cores\r\n", snrt_cluster_idx(),
                _chimera_numCores[snrt_cluster_idx()]);
+        printf("HWPE_ADDR_BASE = 0x%08X\r\n", HWPE_ADDR_BASE);
     }
     snrt_cluster_hw_barrier();
 
