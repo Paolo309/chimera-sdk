@@ -70,7 +70,7 @@ static inline void snrt_hwpe_clr_mxip(uint32_t core_idx) {
  *
  * @warning Stack, thread and global pointer might not yet be set up!
  */
-void clusterInterruptHandler_test_default() {
+void clusterInterruptHandler_test_b2b() {
     _SET_CLUSTER_BUSY();
     _SETUP_GP();
     _CLEAR_MSIP();
@@ -86,7 +86,7 @@ void clusterInterruptHandler_test_default() {
  *
  * @return int Return 0 if the test was successful, -1 otherwise.
  */
-int32_t mxita_test_default(void *args) {
+int32_t mxita_test_b2b(void *args) {
 
     /*
      * Initialize the Snitch runtime.
@@ -102,7 +102,7 @@ int32_t mxita_test_default(void *args) {
     snrt_interrupt_enable(IRQ_M_ACC);
 
     if (core_idx == 0) {
-        printf("Default test\r\n");
+        printf("B2B test (not really, yet)\r\n");
         printf("Running MXITA on cluster %d with %d cores\r\n", snrt_cluster_idx(),
                _chimera_numCores[snrt_cluster_idx()]);
         printf("HWPE_ADDR_BASE = 0x%08X\r\n", HWPE_ADDR_BASE);
@@ -235,4 +235,20 @@ int32_t mxita_test_default(void *args) {
     // snrt_cluster_hw_barrier();
 
     return mxita_test_failed << 1;
+}
+
+int32_t testOtherCluster(void *args) {
+    snrt_init();
+
+    uint32_t core_idx = snrt_cluster_core_idx();
+
+    snrt_int_clr_mcip();
+
+    if (core_idx == 5) {
+        printf("Hello from cluster %d with %d cores\r\n", snrt_cluster_idx(),
+               _chimera_numCores[snrt_cluster_idx()]);
+    }
+    snrt_cluster_hw_barrier();
+
+    return 0;
 }

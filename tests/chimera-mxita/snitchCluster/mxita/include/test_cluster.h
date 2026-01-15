@@ -8,7 +8,11 @@
 
 void clusterInterruptHandler();
 
-int32_t testReturn(void *args);
+int32_t mxita_test_default(void *args);
+void clusterInterruptHandler_test_default();
+
+int32_t mxita_test_b2b(void *args);
+void clusterInterruptHandler_test_b2b();
 
 int32_t testOtherCluster(void *args);
 

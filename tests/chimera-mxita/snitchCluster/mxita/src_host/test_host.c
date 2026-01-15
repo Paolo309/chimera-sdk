@@ -39,9 +39,16 @@ void reset_cluster(int cluster_id) {
 
 static offloadArgs_t offloadArgs = {0};
 
-uint32_t mxita_default_test(int cluster_idx) {
+uint32_t run_mxita_test(
+    int cluster_idx,
+    int32_t (*cluster_test_fn)(void*),
+    void (*cluster_test_interrupt_handler)(void)
+) {
+    setup_snitchCluster_interruptHandler(clusterInterruptHandler);
     set_snitchCluster_clockGating(cluster_idx, 0);
-    offload_snitchCluster(testReturn, &offloadArgs, stack_cluster_ptr[cluster_idx], cluster_idx);
+
+    setup_snitchCluster_interruptHandler(cluster_test_interrupt_handler);
+    offload_snitchCluster(cluster_test_fn, &offloadArgs, stack_cluster_ptr[cluster_idx], cluster_idx);
 
     // Handle tohost/fromhost communication, returns when cluster is done
     handle_cluster_syscalls(cluster_idx);
@@ -52,14 +59,40 @@ uint32_t mxita_default_test(int cluster_idx) {
     return retVal >> 1;
 }
 
-int test_00() {
+int test_default_fp32() {
     offloadArgs.bf16_sel = 0; // BF32
-    return mxita_default_test(0);
+    return run_mxita_test(
+        0, /* cluster idx */
+        mxita_test_default, 
+        clusterInterruptHandler_test_default
+    );
 }
 
-int test_01() {
+int test_default_bf16() {
     offloadArgs.bf16_sel = 1; // BF16
-    return mxita_default_test(0);
+    return run_mxita_test(
+        0, /* cluster idx */
+        mxita_test_default, 
+        clusterInterruptHandler_test_default
+    );
+}
+
+int test_b2b_fp32() {
+    offloadArgs.bf16_sel = 0; // BF32
+    return run_mxita_test(
+        0, /* cluster idx */
+        mxita_test_b2b, 
+        clusterInterruptHandler_test_b2b
+    );
+}
+
+int test_b2b_bf16() {
+    offloadArgs.bf16_sel = 1; // BF16
+    return run_mxita_test(
+        0, /* cluster idx */
+        mxita_test_b2b, 
+        clusterInterruptHandler_test_b2b
+    );
 }
 
 int test_other_cluster() {
@@ -79,8 +112,12 @@ int test_other_cluster() {
 }
 
 test_entry_t tests[] = {
-    {"default | BF32", test_00},
-    {"default | BF16", test_01},
+    {"default | BF32", test_default_fp32},
+    {"B2B | BF16", test_b2b_bf16},
+
+    // {"default | BF16", test_default_bf16},
+    // {"B2B | BF32", test_b2b_fp32},
+    // {"B2B | BF16", test_b2b_bf16},
     {"other cluster", test_other_cluster},
 };
 const int NUM_TESTS = sizeof(tests) / sizeof(tests[0]);
@@ -102,8 +139,6 @@ int main() {
         generate_snitchCluster_SPs_uniform(cluster_idx, (void *)STACK_ADDRESS(cluster_idx), 0x2000,
                                            stack_cluster_ptr[cluster_idx]);
     }
-
-    setup_snitchCluster_interruptHandler(clusterInterruptHandler);
 
     for (int cluster_idx = 0; cluster_idx < _chimera_numClusters; cluster_idx++) {
         reset_cluster(cluster_idx);
