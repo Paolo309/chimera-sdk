@@ -122,6 +122,15 @@ int test_rw4c_fp32() {
     );
 }
 
+int test_rwsc_fp32() {
+    offloadArgs.bf16_sel = 0; // BF32
+    return run_mxita_test(
+        1, /* cluster idx */
+        mxita_test_rwsc,
+        clusterInterruptHandler_test_rwsc
+    );
+}
+
 int test_other_cluster() {
     int cluster_idx = 1;
 
@@ -139,10 +148,22 @@ int test_other_cluster() {
 }
 
 test_entry_t tests[] = {
-    {"2-contexts-same-core | FP32", test_2csc_fp32},
+    // {"2-contexts-same-core | FP32", test_2csc_fp32},
+    // {"2-contexts-same-core | FP32", test_2csc_fp32},
+    // {"3-contexts-same-core | FP32", test_3csc_fp32},
+    // {"3-contexts-same-core | FP32", test_3csc_fp32},
+    // {"Dual core tiles | FP32", test_2cores_fp32},
+    // {"RW 4 cores | FP32", test_rw4c_fp32},
+    {"RW same core | FP32", test_rwsc_fp32},
 
     // {"B2B | BF16", test_b2b_fp32},
-    // {"default | FP32", test_default_fp32},
+    // {"default | FP32 | C0", test_default_fp32},
+    // {"default | FP32 | C0", test_default_fp32},
+    // {"default | FP32 | C0", test_default_fp32},
+    // {"default | FP32 | C0", test_default_fp32},
+    // {"default | FP32 | C1", test_default_fp32_c1},
+    // {"default | FP32 | C1", test_default_fp32_c1},
+    // {"default | FP32 | C1", test_default_fp32_c1},
     // {"default | FP32", test_default_fp32},
     // {"default | FP32", test_default_bf16},
     
