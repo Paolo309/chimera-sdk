@@ -23,11 +23,18 @@
 
 static volatile int mxita_test_failed = 0;
 
-SNRT_CLUSTER_L1_ZERO(static void *local_input_matrix);
-SNRT_CLUSTER_L1_ZERO(static void *local_weight_matrix);
-SNRT_CLUSTER_L1_ZERO(static void *local_input_scale);
-SNRT_CLUSTER_L1_ZERO(static void *local_weight_scale);
-SNRT_CLUSTER_L1_ZERO(static void *local_output_matrix);
+SNRT_CLUSTER_L1_ZERO(static void *local_input1_matrix);
+SNRT_CLUSTER_L1_ZERO(static void *local_weight1_matrix);
+SNRT_CLUSTER_L1_ZERO(static void *local_input1_scale);
+SNRT_CLUSTER_L1_ZERO(static void *local_weight1_scale);
+SNRT_CLUSTER_L1_ZERO(static void *local_output1_matrix);
+
+SNRT_CLUSTER_L1_ZERO(static void *local_input2_matrix);
+SNRT_CLUSTER_L1_ZERO(static void *local_weight2_matrix);
+SNRT_CLUSTER_L1_ZERO(static void *local_input2_scale);
+SNRT_CLUSTER_L1_ZERO(static void *local_weight2_scale);
+SNRT_CLUSTER_L1_ZERO(static void *local_output2_matrix);
+
 
 /**
  * @brief L1 allocator allowing custom alignment.
@@ -102,7 +109,7 @@ int32_t mxita_test_b2b(void *args) {
     snrt_interrupt_enable(IRQ_M_ACC);
 
     if (core_idx == 0) {
-        printf("B2B test (not really, yet)\r\n");
+        printf("B2B test\r\n");
         printf("Running MXITA on cluster %d with %d cores\r\n", snrt_cluster_idx(),
                _chimera_numCores[snrt_cluster_idx()]);
         printf("HWPE_ADDR_BASE = 0x%08X\r\n", HWPE_ADDR_BASE);
@@ -140,16 +147,27 @@ int32_t mxita_test_b2b(void *args) {
     }
 
     if (snrt_is_dm_core()) {
-        local_input_matrix = mxita_l1_alloc(input_mat_size, MXITA_TCDM_ALIGN);
-        local_weight_matrix = mxita_l1_alloc(weight_mat_size, MXITA_TCDM_ALIGN);
-        local_input_scale = mxita_l1_alloc(input_scale_size, MXITA_TCDM_ALIGN);
-        local_weight_scale = mxita_l1_alloc(weight_scale_size, MXITA_TCDM_ALIGN);
-        local_output_matrix = mxita_l1_alloc(output_mat_size, MXITA_TCDM_ALIGN);
+        local_input1_matrix = mxita_l1_alloc(input_mat_size, MXITA_TCDM_ALIGN);
+        local_weight1_matrix = mxita_l1_alloc(weight_mat_size, MXITA_TCDM_ALIGN);
+        local_input1_scale = mxita_l1_alloc(input_scale_size, MXITA_TCDM_ALIGN);
+        local_weight1_scale = mxita_l1_alloc(weight_scale_size, MXITA_TCDM_ALIGN);
+        local_output1_matrix = mxita_l1_alloc(output_mat_size, MXITA_TCDM_ALIGN);
 
-        snrt_dma_start_1d(local_input_matrix, input_matrix, input_mat_size);
-        snrt_dma_start_1d(local_weight_matrix, weight_matrix, weight_mat_size);
-        snrt_dma_start_1d(local_input_scale, input_scale, input_scale_size);
-        snrt_dma_start_1d(local_weight_scale, weight_scale, weight_scale_size);
+        local_input2_matrix = mxita_l1_alloc(input_mat_size, MXITA_TCDM_ALIGN);
+        local_weight2_matrix = mxita_l1_alloc(weight_mat_size, MXITA_TCDM_ALIGN);
+        local_input2_scale = mxita_l1_alloc(input_scale_size, MXITA_TCDM_ALIGN);
+        local_weight2_scale = mxita_l1_alloc(weight_scale_size, MXITA_TCDM_ALIGN);
+        local_output2_matrix = mxita_l1_alloc(output_mat_size, MXITA_TCDM_ALIGN);
+
+        snrt_dma_start_1d(local_input1_matrix, input_matrix, input_mat_size);
+        snrt_dma_start_1d(local_weight1_matrix, weight_matrix, weight_mat_size);
+        snrt_dma_start_1d(local_input1_scale, input_scale, input_scale_size);
+        snrt_dma_start_1d(local_weight1_scale, weight_scale, weight_scale_size);
+
+        snrt_dma_start_1d(local_input2_matrix, input_matrix, input_mat_size);
+        snrt_dma_start_1d(local_weight2_matrix, weight_matrix, weight_mat_size);
+        snrt_dma_start_1d(local_input2_scale, input_scale, input_scale_size);
+        snrt_dma_start_1d(local_weight2_scale, weight_scale, weight_scale_size);
 
         snrt_dma_wait_all();
     }
@@ -169,12 +187,12 @@ int32_t mxita_test_b2b(void *args) {
 
         // uint64_t t0 = (uint64_t)snrt_mcycle();
 
-        // cast void pointer into int32 value
-        mxita_cfg(k_size, l_size, lk_size, (unsigned int)local_input_matrix,
-                  (unsigned int)local_weight_matrix, (unsigned int)local_output_matrix,
-                  (unsigned int)local_input_scale, (unsigned int)local_weight_scale, bf16_sel);
+        printf("[cycle=%7u] MXITA back-to-back runs from core %d\r\n", snrt_mcycle(), core_idx);
 
-        printf("[cycle=%7u] MXITA configured from core %d\r\n", snrt_mcycle(), core_idx);
+        // cast void pointer into int32 value
+        mxita_cfg(k_size, l_size, lk_size, (unsigned int)local_input1_matrix,
+                  (unsigned int)local_weight1_matrix, (unsigned int)local_output1_matrix,
+                  (unsigned int)local_input1_scale, (unsigned int)local_weight1_scale, bf16_sel);
 
         running_mxita = 1; // to tell the interrupt handler to clear mxip
         mxita_core_idx = core_idx;
@@ -184,11 +202,22 @@ int32_t mxita_test_b2b(void *args) {
         hwpe_trigger_job();
         snrt_wfi();
 
+        mxita_cfg(k_size, l_size, lk_size, (unsigned int)local_input2_matrix,
+                  (unsigned int)local_weight2_matrix, (unsigned int)local_output2_matrix,
+                  (unsigned int)local_input2_scale, (unsigned int)local_weight2_scale, bf16_sel);
+        
+        running_mxita = 1; // to tell the interrupt handler to clear mxip
+        mxita_core_idx = core_idx;
+
+        hwpe_trigger_job();
+        snrt_wfi();
+
+
         // XXX not accurate, also accounts for interrupt handler
         volatile uint32_t end_cycle = snrt_mcycle();
         argsStruct->cycles = end_cycle - start_cycle;
 
-        printf("[cycle=%7u] MXITA interrupt from core %d\r\n", snrt_mcycle(), core_idx);
+        printf("[cycle=%7u] MXITA second interrupt from core %d\r\n", snrt_mcycle(), core_idx);
         printf("cycles: %u\r\n", snrt_mcycle(), argsStruct->cycles);
 
         printf("Starting DUT vs REF comparison \r\n");
@@ -203,8 +232,8 @@ int32_t mxita_test_b2b(void *args) {
         printf("Performing %d comparisons...\r\n", total_comparisons);
 
         int errors = 0;
-        float *out_float = (float *)local_output_matrix;
-        uint16_t *out_bf16 = (uint16_t *)local_output_matrix;
+        float *out_float = (float *)local_output1_matrix;
+        uint16_t *out_bf16 = (uint16_t *)local_output1_matrix;
         for (int i = 0; i < total_comparisons; i++) {
             float dut = bf16_sel ? uint32_to_float((uint32_t)out_bf16[i] << 16) : out_float[i];
             float ref = bf16_sel ? output_matrix[i ^ 1] : output_matrix[i];

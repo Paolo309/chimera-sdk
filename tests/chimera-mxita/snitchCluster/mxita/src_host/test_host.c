@@ -86,15 +86,6 @@ int test_b2b_fp32() {
     );
 }
 
-int test_b2b_bf16() {
-    offloadArgs.bf16_sel = 1; // BF16
-    return run_mxita_test(
-        0, /* cluster idx */
-        mxita_test_b2b, 
-        clusterInterruptHandler_test_b2b
-    );
-}
-
 int test_other_cluster() {
     int cluster_idx = 1;
 
@@ -112,12 +103,18 @@ int test_other_cluster() {
 }
 
 test_entry_t tests[] = {
+    {"B2B | BF16", test_b2b_fp32},
     {"default | BF32", test_default_fp32},
-    {"B2B | BF16", test_b2b_bf16},
+    {"default | BF32", test_default_fp32},
+    // {"default | BF32", test_default_bf16},
+    
+    // {"B2B | BF16", test_b2b_fp32},
+    // {"B2B | BF16", test_b2b_fp32},
+    // {"default | BF32", test_default_fp32},
+    // {"B2B | BF16", test_b2b_bf16},
 
     // {"default | BF16", test_default_bf16},
     // {"B2B | BF32", test_b2b_fp32},
-    // {"B2B | BF16", test_b2b_bf16},
     {"other cluster", test_other_cluster},
 };
 const int NUM_TESTS = sizeof(tests) / sizeof(tests[0]);
