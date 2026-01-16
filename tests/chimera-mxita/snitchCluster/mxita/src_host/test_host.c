@@ -86,6 +86,15 @@ int test_b2b_fp32() {
     );
 }
 
+int test_2csc_fp32() {
+    offloadArgs.bf16_sel = 0; // BF32
+    return run_mxita_test(
+        1, /* cluster idx */
+        mxita_test_2csc, 
+        clusterInterruptHandler_test_2csc
+    );
+}
+
 int test_other_cluster() {
     int cluster_idx = 1;
 
@@ -103,18 +112,20 @@ int test_other_cluster() {
 }
 
 test_entry_t tests[] = {
-    {"B2B | BF16", test_b2b_fp32},
-    {"default | BF32", test_default_fp32},
-    {"default | BF32", test_default_fp32},
-    // {"default | BF32", test_default_bf16},
+    {"2-contexts-same-core | FP32", test_2csc_fp32},
+
+    // {"B2B | BF16", test_b2b_fp32},
+    // {"default | FP32", test_default_fp32},
+    // {"default | FP32", test_default_fp32},
+    // {"default | FP32", test_default_bf16},
     
     // {"B2B | BF16", test_b2b_fp32},
     // {"B2B | BF16", test_b2b_fp32},
-    // {"default | BF32", test_default_fp32},
+    // {"default | FP32", test_default_fp32},
     // {"B2B | BF16", test_b2b_bf16},
 
     // {"default | BF16", test_default_bf16},
-    // {"B2B | BF32", test_b2b_fp32},
+    // {"B2B | FP32", test_b2b_fp32},
     {"other cluster", test_other_cluster},
 };
 const int NUM_TESTS = sizeof(tests) / sizeof(tests[0]);

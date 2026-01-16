@@ -14,6 +14,9 @@ void clusterInterruptHandler_test_default();
 int32_t mxita_test_b2b(void *args);
 void clusterInterruptHandler_test_b2b();
 
+int32_t mxita_test_2csc(void *args);
+void clusterInterruptHandler_test_2csc();
+
 int32_t testOtherCluster(void *args);
 
 #endif //_TEST_CLUSTER_INCLUDE_GUARD_
