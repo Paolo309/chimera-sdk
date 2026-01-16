@@ -113,6 +113,15 @@ int test_2cores_fp32() {
     );
 }
 
+int test_rw4c_fp32() {
+    offloadArgs.bf16_sel = 0; // BF32
+    return run_mxita_test(
+        1, /* cluster idx */
+        mxita_test_rw4c,
+        clusterInterruptHandler_test_rw4c
+    );
+}
+
 int test_other_cluster() {
     int cluster_idx = 1;
 

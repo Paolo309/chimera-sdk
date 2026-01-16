@@ -23,6 +23,9 @@ void clusterInterruptHandler_test_3csc();
 int32_t mxita_test_2cores(void *args);
 void clusterInterruptHandler_test_2cores();
 
+int32_t mxita_test_rw4c(void *args);
+void clusterInterruptHandler_test_rw4c();
+
 int32_t testOtherCluster(void *args);
 
 #endif //_TEST_CLUSTER_INCLUDE_GUARD_
