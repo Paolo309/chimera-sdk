@@ -95,6 +95,15 @@ int test_2csc_fp32() {
     );
 }
 
+int test_3csc_fp32() {
+    offloadArgs.bf16_sel = 0; // BF32
+    return run_mxita_test(
+        0, /* cluster idx */
+        mxita_test_3csc, 
+        clusterInterruptHandler_test_3csc
+    );
+}
+
 int test_other_cluster() {
     int cluster_idx = 1;
 
@@ -164,7 +173,7 @@ int main() {
         failed_tests += (run_test(test_idx) != 0);
     }
 
-    printf_log("MXITA Test Summary: %d/%d tests passed, %d failed.\r\n", NUM_TESTS - failed_tests,
+    printf_log("MXITA Test Summary: %d/%d tests passed, %d failed.\r\n\r\n", NUM_TESTS - failed_tests,
                NUM_TESTS, failed_tests);
 
     return failed_tests;
