@@ -16,8 +16,8 @@
 #define MXITA_TRIGGER 0x00
 #define MXITA_ACQUIRE 0x04
 #define HWPE_MXIP_ADDR (HWPE_ADDR_BASE + 0x58)
-#define HWPE_WRITE(value, offset) *(int *)(HWPE_ADDR_BASE + offset) = value
-#define HWPE_READ(offset) *(int *)(HWPE_ADDR_BASE + offset)
+#define HWPE_WRITE(value, offset) *(volatile uint32_t *)(HWPE_ADDR_BASE + offset) = value
+#define HWPE_READ(offset) *(volatile uint32_t *)(HWPE_ADDR_BASE + offset)
 
 // tolerance for output comparison
 #define RELATIVE_TOLERANCE 1e-2
@@ -34,16 +34,74 @@
         : "t0", "t1" /* Declare clobbered registers */ \
     );
 
-// MXITA HWPE cfg
-void mxita_cfg(uint8_t k_size, uint16_t l_size, uint8_t lk_size, 
+/**
+ * @brief Configure the MXITA HWPE with the given parameters.
+ *
+ * @param k_size K
+ * @param l_size L
+ * @param lk_size LK
+ * @param input_ptr Pointer to input matrix
+ * @param weight_ptr Pointer to weight matrix
+ * @param output_ptr Pointer to output matrix
+ * @param input_scale_ptr Pointer to input scale
+ * @param weight_scale_ptr Pointer to weight scale
+ * @param bf16_sel BF16 selection flag (if false, use FP32)
+*/
+static inline void mxita_cfg(uint8_t k_size, uint16_t l_size, uint8_t lk_size, 
                unsigned int input_ptr, unsigned int weight_ptr, 
                unsigned int output_ptr, unsigned int input_scale_ptr,
-               unsigned int weight_scale_ptr, unsigned int bf16_sel);
+               unsigned int weight_scale_ptr, unsigned int bf16_sel) {
+    uint32_t l_dims_reg = 0;
+    uint32_t ctrl_stream_reg = 0;
+    l_dims_reg = ((uint32_t)lk_size << 24) | ((uint32_t)l_size << 8) | ((uint32_t)k_size << 0);
+    HWPE_WRITE(input_ptr, 0x20);
+    HWPE_WRITE(weight_ptr, 0x24);
+    HWPE_WRITE(output_ptr, 0x28);
+    HWPE_WRITE(l_dims_reg, 0x2C);
+    HWPE_WRITE(0, 0x30); // reg_ctrl_stream
+    HWPE_WRITE(input_scale_ptr, 0x34);
+    HWPE_WRITE(weight_scale_ptr, 0x38);
+    HWPE_WRITE(bf16_sel, 0x3C);
+}
 
-inline void hwpe_trigger_job();
-inline int hwpe_acquire_job();
-inline float uint32_to_float(uint32_t b);
+/**
+ * @brief Run the MXITA HWPE.
+*/
+static inline void hwpe_trigger_job() {
+    HWPE_WRITE(0, MXITA_TRIGGER);
+}
 
+/**
+ * @brief Acquire a job from the MXITA HWPE.
+ *
+ * @return int Status of the acquired job.
+*/
+static inline int hwpe_acquire_job() {
+    return HWPE_READ(MXITA_ACQUIRE);
+}
+
+/**
+ * @brief Clear MXITA's interrupt flag for the given core index.
+ *
+ * @param core_idx Core index to clear the interrupt flag for.
+ */
+static inline void snrt_hwpe_clr_mxip(uint32_t core_idx) {
+    *(volatile uint32_t *)HWPE_MXIP_ADDR = (1 << core_idx);
+}
+
+/**
+ * @brief Convert a uint32_t representation of a float to a float.
+ *
+ * @param b The uint32_t representation of the float.
+ * @return float The converted float.
+ */
+float uint32_to_float(uint32_t b);
+
+/**
+ * @brief Interrupt handler for the cluster, which clears the interrupt flag for the current hart.
+ *
+ * @warning Stack, thread and global pointer might not yet be set up!
+ */
 void clusterInterruptHandler();
 
 #endif // _MXITA_UTIL_H

@@ -75,19 +75,10 @@ static inline void *mxita_l1_alloc(size_t size, size_t align) {
     return ret;
 }
 
-static volatile int running_mxita = 0;
-static volatile int mxita_core_idx = 0;
-
-/**
- * @brief Clear mxita's interrupt flag for the given core index.
- *
- * @param core_idx Core index to clear the interrupt flag for.
- */
-static inline void snrt_hwpe_clr_mxip(uint32_t core_idx) {
-    *(volatile uint32_t *)HWPE_MXIP_ADDR = (1 << core_idx);
-}
-
 // --------------------------------------------------------------------------
+
+static volatile int mxita_completed_runs = 0;
+static volatile int mxita_core_idx = 0;
 
 /**
  * @brief Interrupt handler for mxita, which clears the interrupt 
@@ -100,13 +91,8 @@ void clusterInterruptHandler_test_3csc() {
     _SETUP_GP();
     _CLEAR_MSIP();
 
-    // if (running_mxita) {
-    //     snrt_hwpe_clr_mxip(mxita_core_idx);
-    //     // running_mxita = running_mxita > 1 ? running_mxita - 1 : 0;
-    // }
-    // snrt_hwpe_clr_mxip(mxita_core_idx);
-    // running_mxita = 0;
     snrt_hwpe_clr_mxip(mxita_core_idx);
+    ++mxita_completed_runs;
 }
 
 /**
@@ -210,9 +196,10 @@ int32_t mxita_test_3csc(void *args) {
         printf("[cycle=%7u] Starting MXITA from core %d\r\n", snrt_mcycle(), core_idx);
 
         mxita_core_idx = core_idx;
-        running_mxita = 0; // XXX not really needed anymore (?)
+        mxita_completed_runs = 0;
 
-        // snrt_interrupt_disable(IRQ_M_ACC);
+        // avoid handling interrupts immediately to be able to launch all contexts as fast as possible
+        snrt_interrupt_disable(IRQ_M_ACC);
 
         // Context 0
         volatile int status1;
@@ -250,9 +237,13 @@ int32_t mxita_test_3csc(void *args) {
 
         hwpe_trigger_job();
 
-        snrt_wfi();
-        snrt_wfi();
-        snrt_wfi();
+        // we now handle all pending and future interrupts
+        snrt_interrupt_enable(IRQ_M_ACC);
+
+        while (mxita_completed_runs < 3) {
+            snrt_wfi();
+        }
+        mxita_completed_runs = 0;
 
         printf("[cycle=%7u] MXITA interrupt from core %d\r\n", snrt_mcycle(), core_idx);
 

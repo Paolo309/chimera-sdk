@@ -50,19 +50,10 @@ static inline void *mxita_l1_alloc(size_t size, size_t align) {
     return ret;
 }
 
+// --------------------------------------------------------------------------
+
 static volatile int running_mxita = 0;
 static volatile int mxita_core_idx = 0;
-
-/**
- * @brief Clear mxita's interrupt flag for the given core index.
- *
- * @param core_idx Core index to clear the interrupt flag for.
- */
-static inline void snrt_hwpe_clr_mxip(uint32_t core_idx) {
-    *(volatile uint32_t *)HWPE_MXIP_ADDR = (1 << core_idx);
-}
-
-// --------------------------------------------------------------------------
 
 /**
  * @brief Interrupt handler for mxita, which clears the interrupt 

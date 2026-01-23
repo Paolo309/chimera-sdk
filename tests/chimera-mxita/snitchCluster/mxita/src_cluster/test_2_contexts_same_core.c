@@ -57,19 +57,10 @@ static inline void *mxita_l1_alloc(size_t size, size_t align) {
     return ret;
 }
 
-static volatile int running_mxita = 0;
-static volatile int mxita_core_idx = 0;
-
-/**
- * @brief Clear mxita's interrupt flag for the given core index.
- *
- * @param core_idx Core index to clear the interrupt flag for.
- */
-static inline void snrt_hwpe_clr_mxip(uint32_t core_idx) {
-    *(volatile uint32_t *)HWPE_MXIP_ADDR = (1 << core_idx);
-}
-
 // --------------------------------------------------------------------------
+
+static volatile int mxita_completed_runs = 0;
+static volatile int mxita_core_idx = 0;
 
 /**
  * @brief Interrupt handler for mxita, which clears the interrupt 
@@ -82,10 +73,8 @@ void clusterInterruptHandler_test_2csc() {
     _SETUP_GP();
     _CLEAR_MSIP();
 
-    if (running_mxita) {
-        snrt_hwpe_clr_mxip(mxita_core_idx);
-        running_mxita = 0;
-    }
+    snrt_hwpe_clr_mxip(mxita_core_idx);
+    ++mxita_completed_runs;
 }
 
 /**
@@ -177,6 +166,12 @@ int32_t mxita_test_2csc(void *args) {
     if (core_idx == 2) {
         printf("[cycle=%7u] Starting MXITA from core %d\r\n", snrt_mcycle(), core_idx);
 
+        mxita_core_idx = core_idx;
+        mxita_completed_runs = 0;
+
+        // avoid handling interrupts immediately to be able to launch all contexts as fast as possible
+        snrt_interrupt_disable(IRQ_M_ACC);
+
         // Context 0
         volatile int status1;
         do {
@@ -187,9 +182,6 @@ int32_t mxita_test_2csc(void *args) {
         mxita_cfg(k_size, l_size, lk_size, (unsigned int)local_input1_matrix,
                   (unsigned int)local_weight1_matrix, (unsigned int)local_output1_matrix,
                   (unsigned int)local_input1_scale, (unsigned int)local_weight1_scale, bf16_sel);
-
-        running_mxita = 1; // to tell the interrupt handler to clear mxip
-        mxita_core_idx = core_idx;
 
         hwpe_trigger_job();
 
@@ -202,13 +194,16 @@ int32_t mxita_test_2csc(void *args) {
         mxita_cfg(k_size, l_size, lk_size, (unsigned int)local_input2_matrix,
                   (unsigned int)local_weight2_matrix, (unsigned int)local_output2_matrix,
                   (unsigned int)local_input2_scale, (unsigned int)local_weight2_scale, bf16_sel);
-        
-        // XXX race condition? Can the previous run trigger an interrupt after we set running_mxita again, but before hwpe_trigger_job?
-        running_mxita = 1; // to tell the interrupt handler to clear mxip
-        mxita_core_idx = core_idx;
 
         hwpe_trigger_job();
-        snrt_wfi();
+
+        // we now handle all pending and future interrupts
+        snrt_interrupt_enable(IRQ_M_ACC);
+
+        while (mxita_completed_runs < 2) {
+            snrt_wfi();
+        }
+        mxita_completed_runs = 0;
 
         printf("[cycle=%7u] MXITA interrupt from core %d\r\n", snrt_mcycle(), core_idx);
 
