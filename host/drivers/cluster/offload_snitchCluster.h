@@ -39,6 +39,7 @@ void setAll_snitchCluster_clockGating(bool enable);
 
 // Synchronization
 int snitchCluster_busy(uint8_t clusterId);
+void reset_snitchCluster_busy(uint8_t clusterId);
 void wait_snitchCluster_busy(uint8_t clusterId);
 uint32_t wait_snitchCluster_return(uint8_t clusterId);
 

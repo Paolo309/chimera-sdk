@@ -252,6 +252,20 @@ int snitchCluster_busy(uint8_t clusterId) {
 }
 
 /**
+ * @brief Reset the busy flag of the cluster.
+ * The function sets the busy flag to 1 (the hw reset value for this flag)
+ *
+ * @param clusterId ID of the cluster to reset
+ */
+void reset_snitchCluster_busy(uint8_t clusterId) {
+    if (clusterId >= _chimera_numClusters) {
+        return;
+    }
+
+    *((volatile int32_t *)(SOC_CTRL_BASE + _chimera_busy_reg_offset[clusterId])) = 1;
+}
+
+/**
  * @brief Blocking wait for the cluster to become idle.
  * The function busy waits until the cluster is ready.
  *
