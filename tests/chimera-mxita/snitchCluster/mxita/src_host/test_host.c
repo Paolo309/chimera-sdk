@@ -30,6 +30,9 @@ void *stack_cluster_1_ptr[CLUSTER_1_NUMCORES];
 void **stack_cluster_ptr[] = {stack_cluster_0_ptr, stack_cluster_1_ptr};
 
 void reset_cluster(int cluster_id) {
+    printf_log("reset cluster %d \r\n", cluster_id);
+
+    reset_snitchCluster_busy(cluster_id);
     set_snitchCluster_clockGating(cluster_id, 0);
     set_snitchCluster_reset(cluster_id, 1);
     for (volatile int i = 0; i < 10; i++);
@@ -44,10 +47,11 @@ uint32_t run_mxita_test(
     int32_t (*cluster_test_fn)(void*),
     void (*cluster_test_interrupt_handler)(void)
 ) {
-    setup_snitchCluster_interruptHandler(clusterInterruptHandler);
+    setup_snitchCluster_interruptHandler(cluster_test_interrupt_handler);
+    
+    reset_cluster(cluster_idx);
     set_snitchCluster_clockGating(cluster_idx, 0);
 
-    setup_snitchCluster_interruptHandler(cluster_test_interrupt_handler);
     offload_snitchCluster(cluster_test_fn, &offloadArgs, stack_cluster_ptr[cluster_idx], cluster_idx);
 
     // Handle tohost/fromhost communication, returns when cluster is done
@@ -140,50 +144,41 @@ int test_rwsc_fp32() {
     );
 }
 
-int test_other_cluster() {
-    int cluster_idx = 1;
+// int test_other_cluster() {
+//     int cluster_idx = 1;
 
-    set_snitchCluster_clockGating(cluster_idx, 0);
-    offload_snitchCluster(testOtherCluster, &offloadArgs, stack_cluster_ptr[cluster_idx],
-                          cluster_idx);
+//     set_snitchCluster_clockGating(cluster_idx, 0);
+//     offload_snitchCluster(testOtherCluster, &offloadArgs, stack_cluster_ptr[cluster_idx],
+//                           cluster_idx);
 
-    // Handle tohost/fromhost communication, returns when cluster is done
-    handle_cluster_syscalls(cluster_idx);
+//     // Handle tohost/fromhost communication, returns when cluster is done
+//     handle_cluster_syscalls(cluster_idx);
 
-    uint32_t retVal = wait_snitchCluster_return(cluster_idx);
-    set_snitchCluster_clockGating(cluster_idx, 1);
+//     uint32_t retVal = wait_snitchCluster_return(cluster_idx);
+//     set_snitchCluster_clockGating(cluster_idx, 1);
 
-    return retVal >> 1;
-}
+//     return retVal >> 1;
+// }
 
 test_entry_t tests[] = {
-    // {"2-contexts-same-core | FP32", test_2csc_fp32},
-    // {"2-contexts-same-core | FP32", test_2csc_fp32},
-    // {"3-contexts-same-core | FP32", test_3csc_fp32},
-    {"3-contexts-same-core | FP32", test_3csc_fp32},
-    // {"Dual core tiles | FP32", test_2cores_fp32},
-    // {"RW 4 cores | FP32", test_rw4c_fp32},
-    // {"RW same core | FP32", test_rwsc_fp32},
-
-    // {"B2B | BF16", test_b2b_fp32},
-    // {"default | FP32 | C0", test_default_fp32},
-    // {"default | FP32 | C0", test_default_fp32},
-    // {"default | FP32 | C0", test_default_fp32},
-    // {"default | FP32 | C0", test_default_fp32},
-    // {"default | FP32 | C1", test_default_fp32_c1},
-    // {"default | FP32 | C1", test_default_fp32_c1},
-    // {"default | FP32 | C1", test_default_fp32_c1},
-    // {"default | FP32", test_default_fp32},
-    // {"default | FP32", test_default_bf16},
-    
-    // {"B2B | BF16", test_b2b_fp32},
-    // {"B2B | BF16", test_b2b_fp32},
-    // {"default | FP32", test_default_fp32},
-    // {"B2B | BF16", test_b2b_bf16},
-
-    // {"default | BF16", test_default_bf16},
     // {"B2B | FP32", test_b2b_fp32},
-    {"other cluster", test_other_cluster},
+
+    {"default | FP32 | C0", test_default_fp32},
+    {"default | BF16 | C0", test_default_bf16},
+    {"default | FP32 | C1", test_default_fp32_c1},
+    // {"B2B | FP32", test_b2b_fp32},
+    {"2-contexts-same-core | FP32", test_2csc_fp32},
+    {"3-contexts-same-core | FP32", test_3csc_fp32},
+    {"Dual core tiles | FP32", test_2cores_fp32},
+    {"RW 4 cores | FP32", test_rw4c_fp32},
+    {"RW same core | FP32", test_rwsc_fp32},
+
+    {"default | FP32 | C0", test_default_fp32},
+    {"default | FP32 | C0", test_default_fp32},
+    {"default | FP32 | C0", test_default_fp32},
+    {"default | FP32 | C0", test_default_fp32},
+
+    // {"other cluster", test_other_cluster},
 };
 const int NUM_TESTS = sizeof(tests) / sizeof(tests[0]);
 
@@ -203,10 +198,6 @@ int main() {
     for (int cluster_idx = 0; cluster_idx < _chimera_numClusters; cluster_idx++) {
         generate_snitchCluster_SPs_uniform(cluster_idx, (void *)STACK_ADDRESS(cluster_idx), 0x2000,
                                            stack_cluster_ptr[cluster_idx]);
-    }
-
-    for (int cluster_idx = 0; cluster_idx < _chimera_numClusters; cluster_idx++) {
-        reset_cluster(cluster_idx);
     }
 
 #if defined(HARDWARE_BACKEND_RTL)
