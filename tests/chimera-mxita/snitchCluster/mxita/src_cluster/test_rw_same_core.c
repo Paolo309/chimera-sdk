@@ -128,6 +128,8 @@ int32_t mxita_test_rwsc(void *args) {
         printf("(M, N, P, Q) = (%d, %d, %d, %d)\r\n", M, N, P, Q);
         printf("(K, L, LK)   = (%d, %d, %d)\r\n", k_size, l_size, lk_size);
         printf("bf16: %s\r\n", bf16_sel ? "ON" : "OFF");
+
+        hwpe_soft_clear();
     }
 
     if (snrt_is_dm_core()) {

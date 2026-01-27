@@ -15,6 +15,7 @@
 #define HWPE_ADDR_BASE 0x18040000
 #define MXITA_TRIGGER 0x00
 #define MXITA_ACQUIRE 0x04
+#define MXITA_SOFT_CLEAR 0x14
 #define HWPE_MXIP_ADDR (HWPE_ADDR_BASE + 0x58)
 #define HWPE_WRITE(value, offset) *(volatile uint32_t *)(HWPE_ADDR_BASE + offset) = value
 #define HWPE_READ(offset) *(volatile uint32_t *)(HWPE_ADDR_BASE + offset)
@@ -78,6 +79,27 @@ static inline void hwpe_trigger_job() {
 */
 static inline int hwpe_acquire_job() {
     return HWPE_READ(MXITA_ACQUIRE);
+}
+
+/**
+ * @brief Soft clear the MXITA HWPE, resetting its state.
+*/
+static inline void hwpe_soft_clear() {
+    HWPE_WRITE(0, MXITA_SOFT_CLEAR);
+}
+
+/**
+ * @brief Soft clear the MXITA HWPE, keeping register values.
+*/
+static inline void hwpe_soft_clear_keep_regs() {
+    HWPE_WRITE(1, MXITA_SOFT_CLEAR);
+}
+
+/**
+ * @brief Commit the MXITA HWPE configuration.
+*/
+static inline void hwpe_commit() {
+    HWPE_WRITE(1, MXITA_TRIGGER);
 }
 
 /**

@@ -49,7 +49,8 @@ uint32_t run_mxita_test(
 ) {
     setup_snitchCluster_interruptHandler(cluster_test_interrupt_handler);
     
-    reset_cluster(cluster_idx);
+    // mxita soft clear repalces need for cluster reset
+    // reset_cluster(cluster_idx);
     set_snitchCluster_clockGating(cluster_idx, 0);
 
     offload_snitchCluster(cluster_test_fn, &offloadArgs, stack_cluster_ptr[cluster_idx], cluster_idx);
@@ -64,7 +65,7 @@ uint32_t run_mxita_test(
 }
 
 int test_default_fp32() {
-    offloadArgs.bf16_sel = 0; // BF32
+    offloadArgs.bf16_sel = 0; // FP32
     return run_mxita_test(
         0, /* cluster idx */
         mxita_test_default, 
@@ -72,8 +73,24 @@ int test_default_fp32() {
     );
 }
 
+int test_default_fp32_multiple_runs() {
+    const int NUM_RUNS = 5;
+    offloadArgs.bf16_sel = 0; // FP32
+    int final_ret = 0;
+    printf_log("Running default FP32 test for %d runs\r\n", NUM_RUNS);
+    for (int run_idx = 0; run_idx < NUM_RUNS; run_idx++) {
+        printf_log("---- Sub-run %d/%d ----\r\n", run_idx + 1, NUM_RUNS);
+        final_ret |= run_mxita_test(
+            0, /* cluster idx */
+            mxita_test_default, 
+            clusterInterruptHandler_test_default
+        );
+    }
+    return final_ret;
+}
+
 int test_default_fp32_c1() {
-    offloadArgs.bf16_sel = 0; // BF32
+    offloadArgs.bf16_sel = 0; // FP32
     return run_mxita_test(
         1, /* cluster idx */
         mxita_test_default, 
@@ -91,7 +108,7 @@ int test_default_bf16() {
 }
 
 int test_b2b_fp32() {
-    offloadArgs.bf16_sel = 0; // BF32
+    offloadArgs.bf16_sel = 0; // FP32
     return run_mxita_test(
         0, /* cluster idx */
         mxita_test_b2b, 
@@ -100,7 +117,7 @@ int test_b2b_fp32() {
 }
 
 int test_2csc_fp32() {
-    offloadArgs.bf16_sel = 0; // BF32
+    offloadArgs.bf16_sel = 0; // FP32
     return run_mxita_test(
         1, /* cluster idx */
         mxita_test_2csc, 
@@ -109,7 +126,7 @@ int test_2csc_fp32() {
 }
 
 int test_3csc_fp32() {
-    offloadArgs.bf16_sel = 0; // BF32
+    offloadArgs.bf16_sel = 0; // FP32
     return run_mxita_test(
         0, /* cluster idx */
         mxita_test_3csc, 
@@ -118,7 +135,7 @@ int test_3csc_fp32() {
 }
 
 int test_2cores_fp32() {
-    offloadArgs.bf16_sel = 0; // BF32
+    offloadArgs.bf16_sel = 0; // FP32
     return run_mxita_test(
         1, /* cluster idx */
         mxita_test_2cores, 
@@ -127,7 +144,7 @@ int test_2cores_fp32() {
 }
 
 int test_rw4c_fp32() {
-    offloadArgs.bf16_sel = 0; // BF32
+    offloadArgs.bf16_sel = 0; // FP32
     return run_mxita_test(
         1, /* cluster idx */
         mxita_test_rw4c,
@@ -136,7 +153,7 @@ int test_rw4c_fp32() {
 }
 
 int test_rwsc_fp32() {
-    offloadArgs.bf16_sel = 0; // BF32
+    offloadArgs.bf16_sel = 0; // FP32
     return run_mxita_test(
         1, /* cluster idx */
         mxita_test_rwsc,
@@ -161,22 +178,16 @@ int test_rwsc_fp32() {
 // }
 
 test_entry_t tests[] = {
-    // {"B2B | FP32", test_b2b_fp32},
-
     {"default | FP32 | C0", test_default_fp32},
+    {"default multiple runs | FP32 | C0", test_default_fp32_multiple_runs},
     {"default | BF16 | C0", test_default_bf16},
     {"default | FP32 | C1", test_default_fp32_c1},
-    // {"B2B | FP32", test_b2b_fp32},
+    {"B2B | FP32", test_b2b_fp32},
     {"2-contexts-same-core | FP32", test_2csc_fp32},
     {"3-contexts-same-core | FP32", test_3csc_fp32},
     {"Dual core tiles | FP32", test_2cores_fp32},
     {"RW 4 cores | FP32", test_rw4c_fp32},
     {"RW same core | FP32", test_rwsc_fp32},
-
-    {"default | FP32 | C0", test_default_fp32},
-    {"default | FP32 | C0", test_default_fp32},
-    {"default | FP32 | C0", test_default_fp32},
-    {"default | FP32 | C0", test_default_fp32},
 
     // {"other cluster", test_other_cluster},
 };
@@ -198,6 +209,8 @@ int main() {
     for (int cluster_idx = 0; cluster_idx < _chimera_numClusters; cluster_idx++) {
         generate_snitchCluster_SPs_uniform(cluster_idx, (void *)STACK_ADDRESS(cluster_idx), 0x2000,
                                            stack_cluster_ptr[cluster_idx]);
+
+        reset_cluster(cluster_idx);
     }
 
 #if defined(HARDWARE_BACKEND_RTL)

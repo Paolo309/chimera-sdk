@@ -73,10 +73,7 @@ void clusterInterruptHandler_test_b2b() {
     _SETUP_GP();
     _CLEAR_MSIP();
 
-    if (running_mxita) {
-        snrt_hwpe_clr_mxip(mxita_core_idx);
-        running_mxita = 0;
-    }
+    snrt_hwpe_clr_mxip(mxita_core_idx);
 }
 
 /**
@@ -135,6 +132,8 @@ int32_t mxita_test_b2b(void *args) {
         printf("(M, N, P, Q) = (%d, %d, %d, %d)\r\n", M, N, P, Q);
         printf("(K, L, LK)   = (%d, %d, %d)\r\n", k_size, l_size, lk_size);
         printf("bf16: %s\r\n", bf16_sel ? "ON" : "OFF");
+
+        hwpe_soft_clear();
     }
 
     if (snrt_is_dm_core()) {
@@ -168,6 +167,8 @@ int32_t mxita_test_b2b(void *args) {
     if (core_idx == 2) {
         printf("[cycle=%7u] Starting MXITA from core %d\r\n", snrt_mcycle(), core_idx);
 
+        mxita_core_idx = core_idx;
+
         volatile int status1;
         do {
             status1 = hwpe_acquire_job();
@@ -185,31 +186,22 @@ int32_t mxita_test_b2b(void *args) {
                   (unsigned int)local_weight1_matrix, (unsigned int)local_output1_matrix,
                   (unsigned int)local_input1_scale, (unsigned int)local_weight1_scale, bf16_sel);
 
-        running_mxita = 1; // to tell the interrupt handler to clear mxip
-        mxita_core_idx = core_idx;
-
-        volatile uint32_t start_cycle = snrt_mcycle();
-
         hwpe_trigger_job();
         snrt_wfi();
+
+        volatile int status2;
+        do {
+            status2 = hwpe_acquire_job();
+        } while (status2 < 0);
 
         mxita_cfg(k_size, l_size, lk_size, (unsigned int)local_input2_matrix,
                   (unsigned int)local_weight2_matrix, (unsigned int)local_output2_matrix,
                   (unsigned int)local_input2_scale, (unsigned int)local_weight2_scale, bf16_sel);
-        
-        running_mxita = 1; // to tell the interrupt handler to clear mxip
-        mxita_core_idx = core_idx;
 
         hwpe_trigger_job();
         snrt_wfi();
 
-
-        // XXX not accurate, also accounts for interrupt handler
-        volatile uint32_t end_cycle = snrt_mcycle();
-        argsStruct->cycles = end_cycle - start_cycle;
-
         printf("[cycle=%7u] MXITA second interrupt from core %d\r\n", snrt_mcycle(), core_idx);
-        printf("cycles: %u\r\n", snrt_mcycle(), argsStruct->cycles);
 
         printf("Starting DUT vs REF comparison \r\n");
 

@@ -193,6 +193,8 @@ int32_t mxita_test_3csc(void *args) {
     snrt_cluster_hw_barrier();
 
     if (core_idx == 2) {
+        hwpe_soft_clear();
+        
         printf("[cycle=%7u] Starting MXITA from core %d\r\n", snrt_mcycle(), core_idx);
 
         mxita_core_idx = core_idx;
