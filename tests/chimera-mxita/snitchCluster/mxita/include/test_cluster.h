@@ -6,28 +6,22 @@
 
 #include <stdint.h>
 
+/**
+ * @brief Interrupt handler for the cluster, which clears the interrupt flag for the current hart.
+ *
+ * @warning Stack, thread and global pointer might not yet be set up!
+ */
 void clusterInterruptHandler();
 
+// MXITA tests
+
 int32_t mxita_test_default(void *args);
-void clusterInterruptHandler_test_default();
-
 int32_t mxita_test_b2b(void *args);
-void clusterInterruptHandler_test_b2b();
-
 int32_t mxita_test_2csc(void *args);
-void clusterInterruptHandler_test_2csc();
-
 int32_t mxita_test_3csc(void *args);
-void clusterInterruptHandler_test_3csc();
-
 int32_t mxita_test_2cores(void *args);
-void clusterInterruptHandler_test_2cores();
-
 int32_t mxita_test_rw4c(void *args);
-void clusterInterruptHandler_test_rw4c();
-
 int32_t mxita_test_rwsc(void *args);
-void clusterInterruptHandler_test_rwsc();
 
 int32_t testOtherCluster(void *args);
 

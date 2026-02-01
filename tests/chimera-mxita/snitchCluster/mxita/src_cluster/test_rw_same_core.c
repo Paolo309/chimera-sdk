@@ -185,10 +185,9 @@ int32_t mxita_test_rwsc(void *args) {
 
         // XXX not accurate, also accounts for interrupt handler
         volatile uint32_t end_cycle = snrt_mcycle();
-        argsStruct->cycles = end_cycle - start_cycle;
 
         printf("[cycle=%7u] MXITA interrupt from core %d\r\n", snrt_mcycle(), core_idx);
-        printf("cycles: %u\r\n", snrt_mcycle(), argsStruct->cycles);
+        printf("cycles: %u\r\n", snrt_mcycle(), end_cycle - start_cycle);
 
         printf("Starting DUT vs REF comparison \r\n");
 

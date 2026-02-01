@@ -50,26 +50,26 @@ static inline void *mxita_l1_alloc(size_t size, size_t align) {
     return ret;
 }
 
+// Used to check overlap between mxita and concurrent runs
+struct {
+    uint32_t start_cycle;
+    uint32_t end_cycle;
+} typedef concurrent_run_t;
+
+volatile concurrent_run_t mxita_run;
+volatile concurrent_run_t concurrent_runs[3];
+
 // --------------------------------------------------------------------------
 
-static volatile int running_mxita = 0;
 static volatile int mxita_core_idx = 0;
 
 /**
- * @brief Interrupt handler for mxita, which clears the interrupt 
- * flag for the current core id.
- *
- * @warning Stack, thread and global pointer might not yet be set up!
+ * @brief Custom interrupt handler for mxita, which clears the interrupt.
  */
-void clusterInterruptHandler_test_rw4c() {
-    _SET_CLUSTER_BUSY();
-    _SETUP_GP();
+static void hwpeInterruptHandler() { 
     _CLEAR_MSIP();
 
-    if (running_mxita) {
-        snrt_hwpe_clr_mxip(mxita_core_idx);
-        running_mxita = 0;
-    }
+    snrt_hwpe_clr_mxip(mxita_core_idx);
 }
 
 /**
@@ -88,6 +88,9 @@ int32_t mxita_test_rw4c(void *args) {
 
     // Clear interrupt from host
     snrt_int_clr_mcip();
+
+    // Setup custom interrupt handler for the cluster cores
+    setup_interruptHandler(hwpeInterruptHandler);
 
     // Enable accelerator interrupts
     snrt_interrupt_enable(IRQ_M_ACC);
@@ -150,65 +153,81 @@ int32_t mxita_test_rw4c(void *args) {
     snrt_cluster_hw_barrier();
 
     if (core_idx == 0) {
+        concurrent_runs[0].start_cycle = snrt_mcycle();
+
         volatile uint32_t *p = (volatile uint32_t *) local_input_matrix;
         size_t words = input_mat_size / sizeof(uint32_t);
-        for (int rep = 0; rep < 3000; rep++) {
+        for (int rep = 0; rep < 90000; rep++) {
             volatile uint32_t tmp = p[0];
         }
+
+        concurrent_runs[0].end_cycle = snrt_mcycle();
     }
 
     if (core_idx == 1) {
+        concurrent_runs[1].start_cycle = snrt_mcycle();
+
         volatile uint32_t *p = (volatile uint32_t *) local_input_matrix;
         size_t words = input_mat_size / sizeof(uint32_t);
-        for (int rep = 0; rep < 3000; rep++) {
+        for (int rep = 0; rep < 90000; rep++) {
             volatile uint32_t tmp = p[1];
         }
-    }
 
-    if (core_idx == 3) {
-        volatile uint32_t *p = (volatile uint32_t *) local_input_matrix;
-        size_t words = input_mat_size / sizeof(uint32_t);
-        for (int rep = 0; rep < 3000; rep++) {
-            volatile uint32_t tmp = p[2];
-        }
+        concurrent_runs[1].end_cycle = snrt_mcycle();
     }
 
     if (core_idx == 2) {
+        concurrent_runs[2].start_cycle = snrt_mcycle();
+
+        volatile uint32_t *p = (volatile uint32_t *) local_input_matrix;
+        size_t words = input_mat_size / sizeof(uint32_t);
+        for (int rep = 0; rep < 90000; rep++) {
+            volatile uint32_t tmp = p[2];
+        }
+
+        concurrent_runs[2].end_cycle = snrt_mcycle();
+    }
+
+    if (core_idx == 3) {
         printf("[cycle=%7u] Starting MXITA from core %d\r\n", snrt_mcycle(), core_idx);
+
+        mxita_core_idx = core_idx;
+        hwpe_set_perfcnt(1);
+
+        volatile uint32_t start_cycle = snrt_mcycle();
 
         volatile int status1;
         do {
             status1 = hwpe_acquire_job();
         } while (status1 < 0);
 
-        printf("[cycle=%7u] MXITA status %d acquired from core %d\r\n", snrt_mcycle(), status1,
-               core_idx);
-
-        // uint64_t t0 = (uint64_t)snrt_mcycle();
-
-        // cast void pointer into int32 value
         mxita_cfg(k_size, l_size, lk_size, (unsigned int)local_input_matrix,
                   (unsigned int)local_weight_matrix, (unsigned int)local_output_matrix,
                   (unsigned int)local_input_scale, (unsigned int)local_weight_scale, bf16_sel);
 
-        printf("[cycle=%7u] MXITA configured from core %d\r\n", snrt_mcycle(), core_idx);
-
-        running_mxita = 1; // to tell the interrupt handler to clear mxip
-        mxita_core_idx = core_idx;
-
-        volatile uint32_t start_cycle = snrt_mcycle();
-
         hwpe_trigger_job();
         snrt_wfi();
 
-        // XXX not accurate, also accounts for interrupt handler
         volatile uint32_t end_cycle = snrt_mcycle();
-        argsStruct->cycles = end_cycle - start_cycle;
-
         printf("[cycle=%7u] MXITA interrupt from core %d\r\n", snrt_mcycle(), core_idx);
-        printf("cycles: %u\r\n", snrt_mcycle(), argsStruct->cycles);
+        
+        uint32_t hw_cycles = hwpe_get_perfcnt();
+        uint32_t sw_cycles = end_cycle - start_cycle;
+        
+        printf("Total cycles: %u\r\n", sw_cycles);
+        printf("HW cycles: %u\r\n", hw_cycles);
+        printf("SW overhead cycles: %u (%.2f\%)\r\n", 
+            sw_cycles - hw_cycles,
+            100.f * (sw_cycles - hw_cycles) / sw_cycles
+        );
 
-        printf("Starting DUT vs REF comparison \r\n");
+        argsStruct->hw_cycles = hw_cycles;
+        argsStruct->sw_cycles = sw_cycles;
+
+        mxita_run.start_cycle = start_cycle;
+        mxita_run.end_cycle = end_cycle;
+
+        printf("-- Starting DUT vs REF comparison -- \r\n");
 
         int total_comparisons = output_mat_size / NBYTES_OUT_MAT;
 
@@ -240,6 +259,31 @@ int32_t mxita_test_rw4c(void *args) {
     }
 
     snrt_cluster_hw_barrier();
+
+    if (core_idx == 0) {
+        int concurrent_errors = 0;
+        for (int i = 0; i < 3; i++) {
+            if (mxita_run.start_cycle < concurrent_runs[i].start_cycle) {
+                concurrent_errors++;
+                printf("Error: mxita run started before core %d started\r\n", i);
+                printf("    mxita start: %u, core %d start: %u\r\n", 
+                    mxita_run.start_cycle, i, concurrent_runs[i].start_cycle);
+            }
+            if (mxita_run.end_cycle > concurrent_runs[i].end_cycle) {
+                concurrent_errors++;
+                printf("Error: mxita run ended before core %d ended\r\n", i);
+                printf("    mxita end: %u, core %d end: %u\r\n", 
+                    mxita_run.end_cycle, i, concurrent_runs[i].end_cycle);
+            }
+        }
+
+        if (concurrent_errors > 0) {
+            printf("Not an actual fail, but reasults might be meaningless.\r\n");
+            printf("The mxita run should be completely overlapped with the other cores' runs.\r\n");
+        }
+
+        mxita_test_failed |= (concurrent_errors > 0);
+    }
 
     // not needed for FPGA (it was useful for verify.py)
     // if (snrt_is_dm_core()) {

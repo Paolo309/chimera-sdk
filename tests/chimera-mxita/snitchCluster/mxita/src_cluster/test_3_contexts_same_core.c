@@ -81,14 +81,9 @@ static volatile int mxita_completed_runs = 0;
 static volatile int mxita_core_idx = 0;
 
 /**
- * @brief Interrupt handler for mxita, which clears the interrupt 
- * flag for the current core id.
- *
- * @warning Stack, thread and global pointer might not yet be set up!
+ * @brief Custom interrupt handler for mxita, which clears the interrupt.
  */
-void clusterInterruptHandler_test_3csc() {
-    _SET_CLUSTER_BUSY();
-    _SETUP_GP();
+static void hwpeInterruptHandler() { 
     _CLEAR_MSIP();
 
     snrt_hwpe_clr_mxip(mxita_core_idx);
@@ -111,6 +106,9 @@ int32_t mxita_test_3csc(void *args) {
 
     // Clear interrupt from host
     snrt_int_clr_mcip();
+
+    // Setup custom interrupt handler for the cluster cores
+    setup_interruptHandler(hwpeInterruptHandler);
 
     // Enable accelerator interrupts
     snrt_interrupt_enable(IRQ_M_ACC);
@@ -137,6 +135,8 @@ int32_t mxita_test_3csc(void *args) {
     uint8_t k_size = 8;
     uint16_t l_size = 64;
     uint8_t lk_size = 8;
+
+    uint32_t num_contexts = 3;
 
     uint16_t input_mat_size = N * P * l_size * NBYTES_IW_MAT;
     uint16_t weight_mat_size = M * Q * l_size * NBYTES_IW_MAT;
@@ -200,8 +200,12 @@ int32_t mxita_test_3csc(void *args) {
         mxita_core_idx = core_idx;
         mxita_completed_runs = 0;
 
+        hwpe_set_perfcnt(num_contexts);
+
         // avoid handling interrupts immediately to be able to launch all contexts as fast as possible
         snrt_interrupt_disable(IRQ_M_ACC);
+
+        volatile uint32_t start_cycle = snrt_mcycle();
 
         // Context 0
         volatile int status1;
@@ -242,14 +246,30 @@ int32_t mxita_test_3csc(void *args) {
         // we now handle all pending and future interrupts
         snrt_interrupt_enable(IRQ_M_ACC);
 
-        while (mxita_completed_runs < 3) {
+        while (mxita_completed_runs < num_contexts) {
             snrt_wfi();
         }
         mxita_completed_runs = 0;
+        // for (volatile int i = 0; i < 10; i++);
+
+        volatile uint32_t end_cycle = snrt_mcycle();
 
         printf("[cycle=%7u] MXITA interrupt from core %d\r\n", snrt_mcycle(), core_idx);
+        
+        uint32_t hw_cycles = hwpe_get_perfcnt();
+        uint32_t sw_cycles = end_cycle - start_cycle;
+        
+        printf("Total cycles: %u\r\n", sw_cycles);
+        printf("HW cycles: %u\r\n", hw_cycles);
+        printf("SW overhead cycles: %u (%.2f\%)\r\n", 
+            sw_cycles - hw_cycles,
+            100.f * (sw_cycles - hw_cycles) / sw_cycles
+        );
 
-        printf("Starting DUT vs REF comparison \r\n");
+        argsStruct->hw_cycles = hw_cycles;
+        argsStruct->sw_cycles = sw_cycles;
+
+        printf("-- Starting DUT vs REF comparison -- \r\n");
 
         int total_comparisons = output_mat_size / NBYTES_OUT_MAT;
 

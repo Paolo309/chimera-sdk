@@ -16,6 +16,7 @@
 #define MXITA_TRIGGER 0x00
 #define MXITA_ACQUIRE 0x04
 #define MXITA_SOFT_CLEAR 0x14
+#define MXITA_PERF_COUNTER 0x88
 #define HWPE_MXIP_ADDR (HWPE_ADDR_BASE + 0x58)
 #define HWPE_WRITE(value, offset) *(volatile uint32_t *)(HWPE_ADDR_BASE + offset) = value
 #define HWPE_READ(offset) *(volatile uint32_t *)(HWPE_ADDR_BASE + offset)
@@ -112,6 +113,26 @@ static inline void snrt_hwpe_clr_mxip(uint32_t core_idx) {
 }
 
 /**
+ * @brief Enable the performance counter for MXITA HWPE.
+ * If it was already enabled, this has no effect unless the new
+ * value is zero. In that case, the counter is stopped and reset.
+ *
+ * @param reps Number of repetitions to set in the performance counter.
+ */
+static inline void hwpe_set_perfcnt(int reps) {
+    HWPE_WRITE(reps, MXITA_PERF_COUNTER);
+}
+
+/** 
+ * @brief Get the current value of the MXITA HWPE performance counter.
+ *
+ * @return int Current value of the performance counter.
+ */
+static inline int hwpe_get_perfcnt() {
+    return HWPE_READ(MXITA_PERF_COUNTER);
+}
+
+/**
  * @brief Convert a uint32_t representation of a float to a float.
  *
  * @param b The uint32_t representation of the float.
@@ -120,10 +141,11 @@ static inline void snrt_hwpe_clr_mxip(uint32_t core_idx) {
 float uint32_to_float(uint32_t b);
 
 /**
- * @brief Interrupt handler for the cluster, which clears the interrupt flag for the current hart.
+ * @brief Setup the interrupt handler for the cluster cores.
+ * All cores in all clusters will jump to the handler when an interrupt is triggered.
  *
- * @warning Stack, thread and global pointer might not yet be set up!
+ * @param handler Function pointer to the interrupt handler
  */
-void clusterInterruptHandler();
+void setup_interruptHandler(void *handler);
 
 #endif // _MXITA_UTIL_H

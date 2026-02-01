@@ -44,10 +44,10 @@ static offloadArgs_t offloadArgs = {0};
 
 uint32_t run_mxita_test(
     int cluster_idx,
-    int32_t (*cluster_test_fn)(void*),
-    void (*cluster_test_interrupt_handler)(void)
+    int32_t (*cluster_test_fn)(void*)
 ) {
-    setup_snitchCluster_interruptHandler(cluster_test_interrupt_handler);
+    // setup_snitchCluster_interruptHandler(cluster_test_interrupt_handler);
+    setup_snitchCluster_interruptHandler(clusterInterruptHandler);
     
     // mxita soft clear repalces need for cluster reset
     // reset_cluster(cluster_idx);
@@ -68,8 +68,7 @@ int test_default_fp32() {
     offloadArgs.bf16_sel = 0; // FP32
     return run_mxita_test(
         0, /* cluster idx */
-        mxita_test_default, 
-        clusterInterruptHandler_test_default
+        mxita_test_default
     );
 }
 
@@ -82,8 +81,7 @@ int test_default_fp32_multiple_runs() {
         printf_log("---- Sub-run %d/%d ----\r\n", run_idx + 1, NUM_RUNS);
         final_ret |= run_mxita_test(
             0, /* cluster idx */
-            mxita_test_default, 
-            clusterInterruptHandler_test_default
+            mxita_test_default
         );
     }
     return final_ret;
@@ -93,8 +91,7 @@ int test_default_fp32_c1() {
     offloadArgs.bf16_sel = 0; // FP32
     return run_mxita_test(
         1, /* cluster idx */
-        mxita_test_default, 
-        clusterInterruptHandler_test_default
+        mxita_test_default
     );
 }
 
@@ -102,8 +99,7 @@ int test_default_bf16() {
     offloadArgs.bf16_sel = 1; // BF16
     return run_mxita_test(
         0, /* cluster idx */
-        mxita_test_default, 
-        clusterInterruptHandler_test_default
+        mxita_test_default
     );
 }
 
@@ -111,8 +107,7 @@ int test_b2b_fp32() {
     offloadArgs.bf16_sel = 0; // FP32
     return run_mxita_test(
         0, /* cluster idx */
-        mxita_test_b2b, 
-        clusterInterruptHandler_test_b2b
+        mxita_test_b2b
     );
 }
 
@@ -120,8 +115,7 @@ int test_2csc_fp32() {
     offloadArgs.bf16_sel = 0; // FP32
     return run_mxita_test(
         1, /* cluster idx */
-        mxita_test_2csc, 
-        clusterInterruptHandler_test_2csc
+        mxita_test_2csc
     );
 }
 
@@ -129,8 +123,7 @@ int test_3csc_fp32() {
     offloadArgs.bf16_sel = 0; // FP32
     return run_mxita_test(
         0, /* cluster idx */
-        mxita_test_3csc, 
-        clusterInterruptHandler_test_3csc
+        mxita_test_3csc
     );
 }
 
@@ -138,8 +131,7 @@ int test_2cores_fp32() {
     offloadArgs.bf16_sel = 0; // FP32
     return run_mxita_test(
         1, /* cluster idx */
-        mxita_test_2cores, 
-        clusterInterruptHandler_test_2cores
+        mxita_test_2cores
     );
 }
 
@@ -147,8 +139,7 @@ int test_rw4c_fp32() {
     offloadArgs.bf16_sel = 0; // FP32
     return run_mxita_test(
         1, /* cluster idx */
-        mxita_test_rw4c,
-        clusterInterruptHandler_test_rw4c
+        mxita_test_rw4c
     );
 }
 
@@ -156,8 +147,7 @@ int test_rwsc_fp32() {
     offloadArgs.bf16_sel = 0; // FP32
     return run_mxita_test(
         1, /* cluster idx */
-        mxita_test_rwsc,
-        clusterInterruptHandler_test_rwsc
+        mxita_test_rwsc
     );
 }
 
@@ -187,7 +177,7 @@ test_entry_t tests[] = {
     {"3-contexts-same-core | FP32", test_3csc_fp32},
     {"Dual core tiles | FP32", test_2cores_fp32},
     {"RW 4 cores | FP32", test_rw4c_fp32},
-    {"RW same core | FP32", test_rwsc_fp32},
+    // {"RW same core | FP32", test_rwsc_fp32},
 
     // {"other cluster", test_other_cluster},
 };

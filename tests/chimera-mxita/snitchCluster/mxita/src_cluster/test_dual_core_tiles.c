@@ -59,24 +59,15 @@ static inline void *mxita_l1_alloc(size_t size, size_t align) {
 
 // --------------------------------------------------------------------------
 
-static volatile int running_mxita = 0;
 static volatile int mxita_core_idx = 0;
 
 /**
- * @brief Interrupt handler for mxita, which clears the interrupt 
- * flag for the current core id.
- *
- * @warning Stack, thread and global pointer might not yet be set up!
+ * @brief Custom interrupt handler for mxita, which clears the interrupt.
  */
-void clusterInterruptHandler_test_2cores() {
-    _SET_CLUSTER_BUSY();
-    _SETUP_GP();
+static void hwpeInterruptHandler() { 
     _CLEAR_MSIP();
 
-    if (running_mxita) {
-        snrt_hwpe_clr_mxip(mxita_core_idx);
-        running_mxita = 0;
-    }
+    snrt_hwpe_clr_mxip(mxita_core_idx);
 }
 
 /**
@@ -95,6 +86,9 @@ int32_t mxita_test_2cores(void *args) {
 
     // Clear interrupt from host
     snrt_int_clr_mcip();
+
+    // Setup custom interrupt handler for the cluster cores
+    setup_interruptHandler(hwpeInterruptHandler);
 
     // Enable accelerator interrupts
     snrt_interrupt_enable(IRQ_M_ACC);
@@ -170,79 +164,72 @@ int32_t mxita_test_2cores(void *args) {
     if (core_idx == 2) {
         printf("[cycle=%7u] Starting MXITA from core %d\r\n", snrt_mcycle(), core_idx);
 
+        mxita_core_idx = core_idx;
+        hwpe_set_perfcnt(1);
+
+        volatile uint32_t start_cycle = snrt_mcycle();
+
         volatile int status1;
         do {
             status1 = hwpe_acquire_job();
         } while (status1 < 0);
 
-        printf("[cycle=%7u] MXITA status %d acquired from core %d\r\n", snrt_mcycle(), status1,
-               core_idx);
-
-        // uint64_t t0 = (uint64_t)snrt_mcycle();
-
-        // cast void pointer into int32 value
         mxita_cfg(k_size, l_size, lk_size, (unsigned int)local_input1_matrix,
                   (unsigned int)local_weight1_matrix, (unsigned int)local_output1_matrix,
                   (unsigned int)local_input1_scale, (unsigned int)local_weight1_scale, bf16_sel);
 
-        printf("[cycle=%7u] MXITA configured from core %d\r\n", snrt_mcycle(), core_idx);
-
-        running_mxita = 1; // to tell the interrupt handler to clear mxip
-        mxita_core_idx = core_idx;
-
-        volatile uint32_t start_cycle = snrt_mcycle();
-
         hwpe_trigger_job();
         snrt_wfi();
 
-        // XXX not accurate, also accounts for interrupt handler
         volatile uint32_t end_cycle = snrt_mcycle();
-        argsStruct->cycles = end_cycle - start_cycle;
 
         printf("[cycle=%7u] MXITA interrupt from core %d\r\n", snrt_mcycle(), core_idx);
-        printf("cycles: %u\r\n", snrt_mcycle(), argsStruct->cycles);
+        
+        uint32_t hw_cycles = hwpe_get_perfcnt();
+        uint32_t sw_cycles = end_cycle - start_cycle;
+        
+        printf("Total cycles: %u\r\n", sw_cycles);
+        printf("HW cycles: %u\r\n", hw_cycles);
+        printf("SW overhead cycles: %u (%.2f\%)\r\n", 
+            sw_cycles - hw_cycles,
+            100.f * (sw_cycles - hw_cycles) / sw_cycles
+        );
+
+        argsStruct->hw_cycles = hw_cycles;
+        argsStruct->sw_cycles = sw_cycles;
     }
 
     if (core_idx == 3) {
         printf("[cycle=%7u] Starting MXITA from core %d\r\n", snrt_mcycle(), core_idx);
 
+        mxita_core_idx = core_idx;
+
+        volatile uint32_t start_cycle = snrt_mcycle();
+
         volatile int status1;
         do {
             status1 = hwpe_acquire_job();
         } while (status1 < 0);
 
-        printf("[cycle=%7u] MXITA status %d acquired from core %d\r\n", snrt_mcycle(), status1,
-               core_idx);
-
-        // uint64_t t0 = (uint64_t)snrt_mcycle();
-
-        // cast void pointer into int32 value
         mxita_cfg(k_size, l_size, lk_size, (unsigned int)local_input2_matrix,
                   (unsigned int)local_weight2_matrix, (unsigned int)local_output2_matrix,
                   (unsigned int)local_input2_scale, (unsigned int)local_weight2_scale, bf16_sel);
 
-        printf("[cycle=%7u] MXITA configured from core %d\r\n", snrt_mcycle(), core_idx);
-
-        running_mxita = 1; // to tell the interrupt handler to clear mxip
-        mxita_core_idx = core_idx;
-
-        volatile uint32_t start_cycle = snrt_mcycle();
-
         hwpe_trigger_job();
         snrt_wfi();
 
-        // XXX not accurate, also accounts for interrupt handler
         volatile uint32_t end_cycle = snrt_mcycle();
-        argsStruct->cycles = end_cycle - start_cycle;
 
         printf("[cycle=%7u] MXITA interrupt from core %d\r\n", snrt_mcycle(), core_idx);
-        printf("cycles: %u\r\n", snrt_mcycle(), argsStruct->cycles);
+
+        uint32_t sw_cycles = end_cycle - start_cycle;
+        printf("Total cycles: %u\r\n", sw_cycles);
     }
 
     snrt_cluster_hw_barrier();
 
     if (core_idx == 4) {
-        printf("Starting DUT vs REF comparison \r\n");
+        printf("-- Starting DUT vs REF comparison -- \r\n");
 
         int total_comparisons = output_mat_size / NBYTES_OUT_MAT;
 

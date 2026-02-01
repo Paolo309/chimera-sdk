@@ -15,7 +15,8 @@
 typedef struct {
     uint8_t is_rtl;
     uint32_t bf16_sel;
-    uint32_t cycles;
+    uint32_t hw_cycles;
+    uint32_t sw_cycles;
 } offloadArgs_t;
 
 typedef struct {

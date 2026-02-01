@@ -12,9 +12,14 @@ float uint32_to_float(uint32_t b) {
     return f ;
 }
 
-__attribute__((naked))
-void clusterInterruptHandler() {
-    _SET_CLUSTER_BUSY();
-    _SETUP_GP();
-    _CLEAR_MSIP();
+/**
+ * @brief Setup the Snitch cluster interrupt handler.
+ *
+ * @param handler Pointer to the interrupt handler function.
+ */
+void setup_interruptHandler(void *handler) {
+    volatile void **snitchTrapHandlerAddr =
+        (volatile void **)(SOC_CTRL_BASE + CHIMERA_SNITCH_INTR_HANDLER_ADDR_REG_OFFSET);
+
+    *snitchTrapHandlerAddr = handler;
 }
