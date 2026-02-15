@@ -158,4 +158,7 @@ float uint32_to_float(uint32_t b);
  */
 void setup_interruptHandler(void *handler);
 
+#define CORE_TYPE_STR() \
+    (snrt_is_dm_core() ? "DM" : "CC")
+
 #endif // _MXITA_UTIL_H

@@ -164,6 +164,7 @@ int32_t mxita_test_default(void *args) {
         printf("| (M, N, P, Q) = (%d, %d, %d, %d)\r\n", M, N, P, Q);
         printf("| (L, K, LK)   = (%d, %d, %d)\r\n", l_size, k_size, lk_size);
         printf("| output type  =  %s\r\n", bf16_sel ? "BF16" : "FP32");
+        printf("| (%dx%d)*(%dx%d)=(%dx%d)\r\n", N*P, l_size, l_size, M*Q, N*P, M*Q);
         printf("+----------------------------\r\n");
 
 #ifdef TRACE
@@ -246,9 +247,10 @@ int32_t mxita_test_default(void *args) {
     snrt_cluster_hw_barrier();
 
     if (snrt_is_dm_core()) {
+        printf("Running MXITA from core %d (%s)\r\n", core_idx, CORE_TYPE_STR());
         hwpe_soft_clear();
 
-        printf("[cycle=%7u] Starting MXITA from core %d\r\n", snrt_mcycle(), core_idx);
+        printf("[cycle=%7u] Starting MXITA\r\n", snrt_mcycle());
 
         mxita_core_idx = core_idx;
 
@@ -259,7 +261,7 @@ int32_t mxita_test_default(void *args) {
         snrt_interrupt_disable(IRQ_M_ACC);
 #endif
 
-        volatile uint32_t start_cycle = snrt_mcycle();
+        uint32_t start_cycle = snrt_mcycle();
 
         // Context 0
         hwpe_wait_acquire_job();
@@ -322,9 +324,9 @@ int32_t mxita_test_default(void *args) {
         mxita_completed_runs = 0;
 #endif
 
-        volatile uint32_t end_cycle = snrt_mcycle();
+        uint32_t end_cycle = snrt_mcycle();
 
-        printf("[cycle=%7u] MXITA interrupt from core %d\r\n", snrt_mcycle(), core_idx);
+        printf("[cycle=%7u] MXITA interrupt\r\n", snrt_mcycle());
         
         hw_cycles = hwpe_get_perfcnt();
         sw_cycles = end_cycle - start_cycle;
