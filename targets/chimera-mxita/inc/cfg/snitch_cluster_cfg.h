@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 ETH Zurich and University of Bologna
 // SPDX-License-Identifier: Apache-2.0
 
-#define CFG_CLUSTER_NR_CORES 9
+#define CFG_CLUSTER_NR_CORES 5
 #define CFG_CLUSTER_BASE_HARTID 1
 #define SNRT_BASE_HARTID CFG_CLUSTER_BASE_HARTID
 #define SNRT_CLUSTER_CORE_NUM CFG_CLUSTER_NR_CORES

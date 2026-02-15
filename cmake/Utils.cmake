@@ -6,7 +6,7 @@ macro(add_chimera_executable name)
   add_custom_command(
     TARGET ${name}
     POST_BUILD
-    COMMAND ${CMAKE_OBJDUMP} -dhS $<TARGET_FILE:${name}> > $<TARGET_FILE:${name}>.s)
+    COMMAND ${CMAKE_OBJDUMP} --mattr=+f -dhS $<TARGET_FILE:${name}> > $<TARGET_FILE:${name}>.s)
 endmacro()
 
 ## TODO: Add vsim target or some such

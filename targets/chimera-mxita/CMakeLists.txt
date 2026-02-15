@@ -114,6 +114,7 @@ target_compile_options(runtime_cluster_snitch
   --target=riscv32-unknown-elf
   -march=${ISA_CLUSTER_SNITCH}
   -mabi=${ABI_CLUSTER_SNITCH}
+  -mno-fdiv
 )
 
 # WIESEP: Expose common link option
