@@ -23,8 +23,8 @@
 
 #define STACK_ADDRESS(idx) (_chimera_clusterBase[(idx)] + 0x20000 - 1)
 // #define STACK_SIZE 0x4000
-// #define STACK_SIZE 0x8000
-#define STACK_SIZE 0x18000
+#define STACK_SIZE 0x8000
+// #define STACK_SIZE 0xC000
 
 // Cluster syscall communication
 extern uintptr_t volatile tohost, fromhost;

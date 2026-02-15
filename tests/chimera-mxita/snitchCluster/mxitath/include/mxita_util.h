@@ -83,6 +83,16 @@ static inline int hwpe_acquire_job() {
 }
 
 /**
+ * @brief Wait to acquire a job from the MXITA HWPE.
+*/
+static inline void hwpe_wait_acquire_job() {
+    volatile int status;
+    do {
+        status = hwpe_acquire_job();
+    } while (status < 0);
+}
+
+/**
  * @brief Soft clear the MXITA HWPE, resetting its state.
 */
 static inline void hwpe_soft_clear() {

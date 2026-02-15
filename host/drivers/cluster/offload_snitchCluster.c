@@ -148,6 +148,12 @@ void *generate_snitchCluster_SPs(uint8_t clusterId, void *sp, uint32_t *stack_si
 void *generate_snitchCluster_SPs_uniform(uint8_t clusterId, void *sp, uint32_t stack_size,
                                          void **stack_ptr) {
     for (uint32_t core_id = 0; core_id < _chimera_numCores[clusterId]; core_id++) {
+        // HACK this is needed for some reason for instantiating larger matrices for the mxita tests
+        if (stack_size > 0x4000 && core_id > 0) {
+            printf("[THESIS] resizing stack for core %d in cluster %d to 0x400 bytes\r\n", core_id, clusterId);
+            stack_size = 0x400;
+        }
+
         // Align to 16 Byte boundaries
         sp = (void *)((uintptr_t)sp & ~(uintptr_t)0xFUL);
 #ifdef TRACE

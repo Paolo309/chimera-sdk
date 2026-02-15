@@ -24,13 +24,31 @@
 #define TRACE
 // #define TRACE_ALLOC
 
+#define NUM_CONTEXTS 3
+
 SNRT_CLUSTER_L1_ZERO(static int mxita_test_failed);
 
-SNRT_CLUSTER_L1_ZERO(static void *local_input_matrix);
-SNRT_CLUSTER_L1_ZERO(static void *local_weight_matrix);
-SNRT_CLUSTER_L1_ZERO(static void *local_input_scale);
-SNRT_CLUSTER_L1_ZERO(static void *local_weight_scale);
-SNRT_CLUSTER_L1_ZERO(static void *local_output_matrix);
+SNRT_CLUSTER_L1_ZERO(static void *local_input_matrix_0);
+SNRT_CLUSTER_L1_ZERO(static void *local_weight_matrix_0);
+SNRT_CLUSTER_L1_ZERO(static void *local_input_scale_0);
+SNRT_CLUSTER_L1_ZERO(static void *local_weight_scale_0);
+SNRT_CLUSTER_L1_ZERO(static void *local_output_matrix_0);
+
+#if NUM_CONTEXTS > 1
+SNRT_CLUSTER_L1_ZERO(static void *local_input_matrix_1);
+SNRT_CLUSTER_L1_ZERO(static void *local_weight_matrix_1);
+SNRT_CLUSTER_L1_ZERO(static void *local_input_scale_1);
+SNRT_CLUSTER_L1_ZERO(static void *local_weight_scale_1);
+SNRT_CLUSTER_L1_ZERO(static void *local_output_matrix_1);
+#endif
+
+#if NUM_CONTEXTS > 2
+SNRT_CLUSTER_L1_ZERO(static void *local_input_matrix_2);
+SNRT_CLUSTER_L1_ZERO(static void *local_weight_matrix_2);
+SNRT_CLUSTER_L1_ZERO(static void *local_input_scale_2);
+SNRT_CLUSTER_L1_ZERO(static void *local_weight_scale_2);
+SNRT_CLUSTER_L1_ZERO(static void *local_output_matrix_2);
+#endif
 
 SNRT_CLUSTER_L1_ZERO (static uint32_t hw_cycles);
 SNRT_CLUSTER_L1_ZERO (static uint32_t sw_cycles);
@@ -73,15 +91,20 @@ static inline void *mxita_l1_alloc(size_t size, size_t align) {
 // --------------------------------------------------------------------------
 
 SNRT_CLUSTER_L1_ZERO(static volatile int mxita_core_idx);
+#if NUM_CONTEXTS > 1
+SNRT_CLUSTER_L1_ZERO(static int mxita_completed_runs);
+#endif
 
 /**
  * @brief Custom interrupt handler for mxita, which clears the interrupt.
  */
 static void hwpeInterruptHandler() { 
-    // _SET_CLUSTER_BUSY();
     _CLEAR_MSIP();
 
     snrt_hwpe_clr_mxip(mxita_core_idx);
+#if NUM_CONTEXTS > 1
+    ++mxita_completed_runs;
+#endif
 }
 
 /**
@@ -140,25 +163,79 @@ int32_t mxita_test_default(void *args) {
         printf("| output type  =  %s\r\n", bf16_sel ? "BF16" : "FP32");
         printf("+----------------------------\r\n");
 
-        local_input_matrix = mxita_l1_alloc(input_mat_size, MXITA_TCDM_ALIGN);
-        local_weight_matrix = mxita_l1_alloc(weight_mat_size, MXITA_TCDM_ALIGN);
-        local_input_scale = mxita_l1_alloc(input_scale_size, MXITA_TCDM_ALIGN);
-        local_weight_scale = mxita_l1_alloc(weight_scale_size, MXITA_TCDM_ALIGN);
-        local_output_matrix = mxita_l1_alloc(output_mat_size, MXITA_TCDM_ALIGN);
-
 #ifdef TRACE
-        printf("MANTA TCDM buffers:\r\n");
-        printf("  local_input_matrix  @ %p (size: %d bytes)\r\n", local_input_matrix, input_mat_size);
-        printf("  local_weight_matrix @ %p (size: %d bytes)\r\n", local_weight_matrix, weight_mat_size);
-        printf("  local_input_scale   @ %p (size: %d bytes)\r\n", local_input_scale, input_scale_size);
-        printf("  local_weight_scale  @ %p (size: %d bytes)\r\n", local_weight_scale, weight_scale_size);
-        printf("  local_output_matrix @ %p (size: %d bytes)\r\n", local_output_matrix, output_mat_size);
+        snrt_allocator_t *alloc = snrt_l1_allocator();
+        uint32_t mxita_tcdm_start = alloc->next;
 #endif
 
-        snrt_dma_start_1d(local_input_matrix, input_matrix, input_mat_size);
-        snrt_dma_start_1d(local_weight_matrix, weight_matrix, weight_mat_size);
-        snrt_dma_start_1d(local_input_scale, input_scale, input_scale_size);
-        snrt_dma_start_1d(local_weight_scale, weight_scale, weight_scale_size);
+        local_input_matrix_0 = mxita_l1_alloc(input_mat_size, MXITA_TCDM_ALIGN);
+        local_weight_matrix_0 = mxita_l1_alloc(weight_mat_size, MXITA_TCDM_ALIGN);
+        local_input_scale_0 = mxita_l1_alloc(input_scale_size, MXITA_TCDM_ALIGN);
+        local_weight_scale_0 = mxita_l1_alloc(weight_scale_size, MXITA_TCDM_ALIGN);
+        local_output_matrix_0 = mxita_l1_alloc(output_mat_size, MXITA_TCDM_ALIGN);
+
+#if NUM_CONTEXTS > 1
+        local_input_matrix_1 = mxita_l1_alloc(input_mat_size, MXITA_TCDM_ALIGN);
+        local_weight_matrix_1 = mxita_l1_alloc(weight_mat_size, MXITA_TCDM_ALIGN);
+        local_input_scale_1 = mxita_l1_alloc(input_scale_size, MXITA_TCDM_ALIGN);
+        local_weight_scale_1 = mxita_l1_alloc(weight_scale_size, MXITA_TCDM_ALIGN);
+        local_output_matrix_1 = mxita_l1_alloc(output_mat_size, MXITA_TCDM_ALIGN);
+#endif
+
+#if NUM_CONTEXTS > 2
+        local_input_matrix_2 = mxita_l1_alloc(input_mat_size, MXITA_TCDM_ALIGN);
+        local_weight_matrix_2 = mxita_l1_alloc(weight_mat_size, MXITA_TCDM_ALIGN);
+        local_input_scale_2 = mxita_l1_alloc(input_scale_size, MXITA_TCDM_ALIGN);
+        local_weight_scale_2 = mxita_l1_alloc(weight_scale_size, MXITA_TCDM_ALIGN);
+        local_output_matrix_2 = mxita_l1_alloc(output_mat_size, MXITA_TCDM_ALIGN);
+#endif
+
+#ifdef TRACE
+        uint32_t mxita_tcdm_end = alloc->next;
+
+        printf("MANTA TCDM buffers:\r\n");
+        printf("  local_input_matrix_0  @ %p (size: %d bytes)\r\n", local_input_matrix_0, input_mat_size);
+        printf("  local_weight_matrix_0 @ %p (size: %d bytes)\r\n", local_weight_matrix_0, weight_mat_size);
+        printf("  local_input_scale_0   @ %p (size: %d bytes)\r\n", local_input_scale_0, input_scale_size);
+        printf("  local_weight_scale_0  @ %p (size: %d bytes)\r\n", local_weight_scale_0, weight_scale_size);
+        printf("  local_output_matrix_0 @ %p (size: %d bytes)\r\n", local_output_matrix_0, output_mat_size);
+#if NUM_CONTEXTS > 1
+        printf("  local_input_matrix_1  @ %p (size: %d bytes)\r\n", local_input_matrix_1, input_mat_size);
+        printf("  local_weight_matrix_1 @ %p (size: %d bytes)\r\n", local_weight_matrix_1, weight_mat_size);
+        printf("  local_input_scale_1   @ %p (size: %d bytes)\r\n", local_input_scale_1, input_scale_size);
+        printf("  local_weight_scale_1  @ %p (size: %d bytes)\r\n", local_weight_scale_1, weight_scale_size);
+        printf("  local_output_matrix_1 @ %p (size: %d bytes)\r\n", local_output_matrix_1, output_mat_size);
+#endif
+#if NUM_CONTEXTS > 2
+        printf("  local_input_matrix_2  @ %p (size: %d bytes)\r\n", local_input_matrix_2, input_mat_size);
+        printf("  local_weight_matrix_2 @ %p (size: %d bytes)\r\n", local_weight_matrix_2, weight_mat_size);
+        printf("  local_input_scale_2   @ %p (size: %d bytes)\r\n", local_input_scale_2, input_scale_size);
+        printf("  local_weight_scale_2  @ %p (size: %d bytes)\r\n", local_weight_scale_2, weight_scale_size);
+        printf("  local_output_matrix_2 @ %p (size: %d bytes)\r\n", local_output_matrix_2, output_mat_size);
+#endif
+
+        uint32_t total_mxita_tcdm_usage = mxita_tcdm_end - mxita_tcdm_start;
+        printf("Total MXITA TCDM usage: %.2f KiB (%.2f%% of total TCDM)\r\n", total_mxita_tcdm_usage / 1024.f,
+               100.f * total_mxita_tcdm_usage / SNRT_TCDM_SIZE);
+#endif
+
+        snrt_dma_start_1d(local_input_matrix_0, input_matrix, input_mat_size);
+        snrt_dma_start_1d(local_weight_matrix_0, weight_matrix, weight_mat_size);
+        snrt_dma_start_1d(local_input_scale_0, input_scale, input_scale_size);
+        snrt_dma_start_1d(local_weight_scale_0, weight_scale, weight_scale_size);
+
+#if NUM_CONTEXTS > 1
+        snrt_dma_start_1d(local_input_matrix_1, input_matrix, input_mat_size);
+        snrt_dma_start_1d(local_weight_matrix_1, weight_matrix, weight_mat_size);
+        snrt_dma_start_1d(local_input_scale_1, input_scale, input_scale_size);
+        snrt_dma_start_1d(local_weight_scale_1, weight_scale, weight_scale_size);
+#endif
+#if NUM_CONTEXTS > 2
+        snrt_dma_start_1d(local_input_matrix_2, input_matrix, input_mat_size);
+        snrt_dma_start_1d(local_weight_matrix_2, weight_matrix, weight_mat_size);
+        snrt_dma_start_1d(local_input_scale_2, input_scale, input_scale_size);
+        snrt_dma_start_1d(local_weight_scale_2, weight_scale, weight_scale_size);
+#endif
 
         snrt_dma_wait_all();
     }
@@ -171,21 +248,76 @@ int32_t mxita_test_default(void *args) {
         printf("[cycle=%7u] Starting MXITA from core %d\r\n", snrt_mcycle(), core_idx);
 
         mxita_core_idx = core_idx;
-        hwpe_set_perfcnt(1);
+
+        hwpe_set_perfcnt(NUM_CONTEXTS);
+
+#if NUM_CONTEXTS > 1
+        mxita_completed_runs = 0;
+        snrt_interrupt_disable(IRQ_M_ACC);
+#endif
 
         volatile uint32_t start_cycle = snrt_mcycle();
 
-        volatile int status1;
-        do {
-            status1 = hwpe_acquire_job();
-        } while (status1 < 0);
+        // Context 0
+        hwpe_wait_acquire_job();
 
-        mxita_cfg(k_size, l_size, lk_size, (unsigned int)local_input_matrix,
-                  (unsigned int)local_weight_matrix, (unsigned int)local_output_matrix,
-                  (unsigned int)local_input_scale, (unsigned int)local_weight_scale, bf16_sel);
+        mxita_cfg(
+            k_size, l_size, lk_size, 
+            (uint32_t)local_input_matrix_0,
+            (uint32_t)local_weight_matrix_0, 
+            (uint32_t)local_output_matrix_0,
+            (uint32_t)local_input_scale_0, 
+            (uint32_t)local_weight_scale_0, 
+            bf16_sel
+        );
 
         hwpe_trigger_job();
+
+#if NUM_CONTEXTS > 1
+        // Context 1
+        hwpe_wait_acquire_job();
+
+        mxita_cfg(
+            k_size, l_size, lk_size, 
+            (uint32_t)local_input_matrix_1,
+            (uint32_t)local_weight_matrix_1, 
+            (uint32_t)local_output_matrix_1,
+            (uint32_t)local_input_scale_1, 
+            (uint32_t)local_weight_scale_1, 
+            bf16_sel
+        );
+
+        hwpe_trigger_job();
+#endif
+
+#if NUM_CONTEXTS > 2
+        // Context 2
+        hwpe_wait_acquire_job();
+
+        mxita_cfg(
+            k_size, l_size, lk_size, 
+            (uint32_t)local_input_matrix_2,
+            (uint32_t)local_weight_matrix_2, 
+            (uint32_t)local_output_matrix_2,
+            (uint32_t)local_input_scale_2, 
+            (uint32_t)local_weight_scale_2, 
+            bf16_sel
+        );
+
+        hwpe_trigger_job();
+#endif
+
+#if NUM_CONTEXTS == 1
         snrt_wfi();
+#else
+        // we now handle all pending and future interrupts
+        snrt_interrupt_enable(IRQ_M_ACC);
+
+        while (mxita_completed_runs < NUM_CONTEXTS) {
+            snrt_wfi();
+        }
+        mxita_completed_runs = 0;
+#endif
 
         volatile uint32_t end_cycle = snrt_mcycle();
 
@@ -221,8 +353,8 @@ int32_t mxita_test_default(void *args) {
         printf("Performing %d comparisons...\r\n", total_comparisons);
 
         int errors = 0;
-        float *out_float = (float *)local_output_matrix;
-        uint16_t *out_bf16 = (uint16_t *)local_output_matrix;
+        float *out_float = (float *)local_output_matrix_0;
+        uint16_t *out_bf16 = (uint16_t *)local_output_matrix_0;
         for (int i = 0; i < total_comparisons; i++) {
             float dut = bf16_sel ? uint32_to_float((uint32_t)out_bf16[i] << 16) : out_float[i];
             float ref = bf16_sel ? output_matrix[i ^ 1] : output_matrix[i];
