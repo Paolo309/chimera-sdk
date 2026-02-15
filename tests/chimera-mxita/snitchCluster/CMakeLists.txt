@@ -3,4 +3,5 @@
 
 # Add test for app
 add_subdirectory(mxita)
+add_subdirectory(mxitath)
 

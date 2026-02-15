@@ -1,18 +1,29 @@
-// SPDX-FileCopyrightText: 2023 ETH Zurich and University of Bologna
+// Copyright 2023 ETH Zurich and University of Bologna.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
-// Cluster configuration for a simple testbench system.
 {
     cluster: {
-        cluster_base_addr: 0x1000_0000,
-        cluster_base_offset: 0, // 0x0
-        cluster_base_hartid: 1,
+        cluster_base_addr: 0x10000000,
+        cluster_base_offset: 0,
+        cluster_base_hartid: 0,
         addr_width: 48,
         data_width: 64,
-        user_width: 5, // clog2(total number of clusters)
+        atomic_id_width: 5, // clog2(total number of clusters)
+        user_width: 53, // addr_width + atomic_id_width
         tcdm: {
             size: 128,
-            banks: 32,
+            // size: 96,
+            // size: 192,
+
+            // banks: 48,
+            // hyperbanks: 2
+            
+            banks: 64,
+            hyperbanks: 2
+
+            // banks: 32,
+            // hyperbanks: 1
         },
         cluster_periph_size: 60, // kB
         zero_mem_size: 64, // kB
@@ -22,7 +33,8 @@
         dma_req_fifo_depth: 8,
         narrow_trans: 4,
         wide_trans: 32,
-        dma_user_width: 1,
+        dma_user_width: 48,
+        enable_multicast: true,
         // We don't need Snitch debugging in Occamy
         enable_debug: false,
         // We don't need Snitch (core-internal) virtual memory support
@@ -34,6 +46,14 @@
             emaw: 2,
             emas: 1
         },
+        alias_region_enable: true,
+        alias_region_base: 0x30000000,
+        // TCDM port expose for HWPE
+        wide_tcdm_port_expose: true,
+        num_exposed_wide_tcdm_ports: 1,
+        narrow_axi_port_expose: true,
+        enable_external_interrupts: true,
+        vm_support: false,
         // Timing parameters
         timing: {
             lat_comp_fp32: 2,
@@ -54,6 +74,8 @@
             register_offload_req: true,
             register_offload_rsp: true,
             register_fpu_req: true,
+            register_fpu_in: true,
+            register_fpu_out: true,
             register_ext_narrow: false,
             register_ext_wide: false
         },
@@ -62,14 +84,10 @@
             {
                 icache: {
                     size: 8, // total instruction cache size in kByte
-                    sets: 2, // number of ways
+                    ways: 2, // number of ways
                     cacheline: 256 // word size in bits
                 },
                 cores: [
-                    { $ref: "#/compute_core_template" },
-                    { $ref: "#/compute_core_template" },
-                    { $ref: "#/compute_core_template" },
-                    { $ref: "#/compute_core_template" },
                     { $ref: "#/compute_core_template" },
                     { $ref: "#/compute_core_template" },
                     { $ref: "#/compute_core_template" },
@@ -79,17 +97,16 @@
             }
         ]
     },
-    "nr_clusters": 5,
     external_addr_regions: [
         {
-            name: "dram"
-            address: 0x8000_0000,
-            length: 0x8000_0000,
+            name: "dram",
+            address: 0x80000000,
+            length: 0x80000000,
             cacheable: true
         },
         {
-            name: "clint"
-            address: 0xFFFF_0000,
+            name: "clint",
+            address: 0xFFFF0000,
             length: 0x1000
         },
     ],
@@ -98,6 +115,7 @@
         isa: "rv32imafd",
         xssr: true,
         xfrep: true,
+        xcopift: true,
         xdma: false,
         xf16: true,
         xf16alt: true,
@@ -106,11 +124,12 @@
         xfdotp: true,
         xfvec: true,
         ssr_nr_credits: 4,
-        num_int_outstanding_loads: 1,
+        num_int_outstanding_loads: 4,
         num_int_outstanding_mem: 4,
         num_fp_outstanding_loads: 4,
         num_fp_outstanding_mem: 4,
-        num_sequencer_instructions: 16,
+        num_sequencer_instructions: 32,
+        num_sequencer_loops: 2,
         num_dtlb_entries: 1,
         num_itlb_entries: 1,
         // SSSR configuration below
@@ -127,17 +146,17 @@
         xdma: true,
         xssr: false,
         xfrep: false,
+        xcopift: false,
         xf16: false,
         xf16alt: false,
         xf8: false,
         xf8alt: false,
         xfdotp: false,
         xfvec: false,
-        num_int_outstanding_loads: 1,
+        num_int_outstanding_loads: 4,
         num_int_outstanding_mem: 4,
         num_fp_outstanding_loads: 4,
         num_fp_outstanding_mem: 4,
-        num_sequencer_instructions: 16,
         num_dtlb_entries: 1,
         num_itlb_entries: 1,
     }
