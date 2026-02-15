@@ -9,8 +9,11 @@
 // Include Application Headers
 #include "test_cluster.h"
 #include "test_host.h"
-#include "data.h"
 #include "mxita_util.h"
+
+#define MXITA_L 64
+#define MXITA_K 32
+#include "data.h"
 
 // Include Target Specific Headers
 #include "soc.h"
