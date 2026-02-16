@@ -2,6 +2,7 @@
 #define _MXITA_UTIL_H
 
 #include <stdint.h>
+#include <string.h>
 
 // Constant data for all MXITA tests
 
@@ -160,5 +161,37 @@ void setup_interruptHandler(void *handler);
 
 #define CORE_TYPE_STR() \
     (snrt_is_dm_core() ? "DM" : "CC")
+
+// TODO this stuff should be defined somewhere else, but isn't (?)
+#define SNRT_TCDM_BANK_WIDTH 8
+#define SNRT_TCDM_BANK_NUM 64
+#define SNRT_TCDM_HYPERBANK_NUM 2
+#define SNRT_TCDM_BANK_PER_HYPERBANK_NUM 32 // SNRT_TCDM_BANK_NUM / SNRT_TCDM_HYPERBANK_NUM
+#define SNRT_TCDM_HYPERBANK_WIDTH (SNRT_TCDM_BANK_PER_HYPERBANK_NUM * SNRT_TCDM_BANK_WIDTH)
+#define SNRT_TCDM_START_ADDR 0x18000000
+
+/**
+ * @brief Align to next multiple of size from a given base.
+ * @details This macro aligns the address to the next alignment boundary
+ *          specified by \p size and \p base. Alignment boundaries are defined
+ *          by summing integer multiples of \p size to the base address.
+ * @param addr Address to be aligned
+ * @param size Alignment size in bytes
+ * @param base Base address for the alignment boundaries
+ * @return pointer to the allocated memory
+ */
+static inline uintptr_t snrt_align_up(uintptr_t addr, size_t size) {
+    uintptr_t base = 0;
+    return (((addr - base) + size - 1) / size) * size + base;
+}
+
+static inline uintptr_t snrt_align_up_base(uintptr_t addr, size_t size,
+                               uintptr_t base) {
+    return (((addr - base) + size - 1) / size) * size + base;
+}
+
+static inline uintptr_t snrt_align_up_hyperbank(uintptr_t addr) {
+    return snrt_align_up_base(addr, SNRT_TCDM_HYPERBANK_WIDTH, SNRT_TCDM_START_ADDR);
+}
 
 #endif // _MXITA_UTIL_H

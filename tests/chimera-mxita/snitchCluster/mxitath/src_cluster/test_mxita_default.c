@@ -53,8 +53,19 @@ SNRT_CLUSTER_L1_ZERO(static void *local_weight_scale_2);
 SNRT_CLUSTER_L1_ZERO(static void *local_output_matrix_2);
 #endif
 
+SNRT_CLUSTER_L1_ZERO(static void *local_test_buffer); // TODO should be moved into the function?
+
+// Performance measures
 SNRT_CLUSTER_L1_ZERO (static uint32_t hw_cycles);
 SNRT_CLUSTER_L1_ZERO (static uint32_t sw_cycles);
+
+// Concurrency measures
+SNRT_CLUSTER_L1_ZERO (static uint32_t sw_start);
+SNRT_CLUSTER_L1_ZERO (static uint32_t sw_end);
+SNRT_CLUSTER_L1_ZERO (static uint32_t dma_start);
+SNRT_CLUSTER_L1_ZERO (static uint32_t dma_end);
+SNRT_CLUSTER_L1_ZERO (static uint32_t dma_cycles);
+
 
 /**
  * @brief L1 allocator allowing custom alignment.
@@ -142,6 +153,8 @@ int32_t mxita_test_default(void *args) {
 
     offloadArgs_t *argsStruct = (offloadArgs_t *)args;
 
+    uint32_t run_concurrent_tcdm = argsStruct->run_concurrent_tcdm;
+
     uint32_t NBYTES_IW_MAT = sizeof(int8_t);
     uint32_t NBYTES_IW_SCALE = sizeof(uint8_t);
     uint32_t NBYTES_OUT_MAT = sizeof(float);
@@ -158,6 +171,11 @@ int32_t mxita_test_default(void *args) {
         (M * Q * lk_size * NBYTES_IW_SCALE < 512) ? 512 : M * Q * lk_size * NBYTES_IW_SCALE;
     uint16_t output_mat_size =
         bf16_sel ? M * N * P * Q * NBYTES_OUT_MAT / 2 : M * N * P * Q * NBYTES_OUT_MAT;
+
+
+    // ##########################
+    // #      TCDM and DMA      #
+    // ##########################
 
     if (snrt_is_dm_core()) {
         printf("+----------------------------\r\n");
@@ -246,7 +264,67 @@ int32_t mxita_test_default(void *args) {
 
     snrt_cluster_hw_barrier();
 
-    if (snrt_is_dm_core()) {
+    // #############################
+    // #      CONCURRENT TCDM      #
+    // #############################
+
+    uint8_t ones[8] = {1, 1, 1, 1, 1, 1, 1, 1};
+    uint64_t pattern = 0xFFFFFFFFFFFFFFFF;
+
+    if (snrt_is_dm_core() && run_concurrent_tcdm) {
+        printf("Running concurrent TCDM access\r\n");
+
+        // HACK done this way because we're missing some functions
+        uintptr_t tcdm_base = snrt_align_up_hyperbank((uintptr_t)(0x18000000 + (snrt_l1_next() - 0x40000000)));
+        uintptr_t hyperbank0_base = tcdm_base;
+        uintptr_t hyperbank1_base = tcdm_base + (SNRT_TCDM_SIZE / 2);
+
+        printf("TCDM base: %#x\r\n", tcdm_base);
+        printf("  Hyperbank 0 base: %#x\r\n", tcdm_base);
+        printf("  Hyperbank 1 base: %#x\r\n", hyperbank1_base);
+        
+        // XXX check cores' stack sizes to avoid overwriting any stack
+        local_test_buffer = (void *)hyperbank1_base;
+        // local_test_buffer = mxita_l1_alloc(512, MXITA_TCDM_ALIGN);
+
+        printf("TEST BUFFERS:\r\n");
+        printf("  local_test_buffer @ %p\r\n", local_test_buffer);
+    }
+
+    snrt_cluster_hw_barrier();
+
+    // PARALLEL DMA ACCESSES
+    if (snrt_is_dm_core() && run_concurrent_tcdm) {
+        dma_start = snrt_mcycle();
+
+        for (int rep = 0; rep < 50000; rep++) {
+            snrt_dma_start_1d(local_test_buffer, ones, sizeof(ones) / sizeof(ones[0]));
+        }
+
+        snrt_dma_wait_all();
+
+        dma_end = snrt_mcycle();
+        dma_cycles = dma_end - dma_start;
+    }
+
+    // ADDITIONAL CONGESTION
+    if (core_idx == 1 && run_concurrent_tcdm) {
+        // dma_start = snrt_mcycle();
+
+        for (int rep1 = 0; rep1 < 100000; rep1++) {
+            *((volatile uint64_t *)local_test_buffer) = pattern;
+        }
+
+        // dma_end = snrt_mcycle();
+        // dma_cycles = dma_end - dma_start;
+    }
+
+
+    // ############################
+    // #      MXITA CONTEXTS      #
+    // ############################
+
+    if (core_idx == 0) {
         printf("Running MXITA from core %d (%s)\r\n", core_idx, CORE_TYPE_STR());
         hwpe_soft_clear();
 
@@ -261,7 +339,7 @@ int32_t mxita_test_default(void *args) {
         snrt_interrupt_disable(IRQ_M_ACC);
 #endif
 
-        uint32_t start_cycle = snrt_mcycle();
+        sw_start = snrt_mcycle();
 
         // Context 0
         hwpe_wait_acquire_job();
@@ -324,24 +402,43 @@ int32_t mxita_test_default(void *args) {
         mxita_completed_runs = 0;
 #endif
 
-        uint32_t end_cycle = snrt_mcycle();
+        sw_end = snrt_mcycle();
 
         printf("[cycle=%7u] MXITA interrupt\r\n", snrt_mcycle());
         
         hw_cycles = hwpe_get_perfcnt();
-        sw_cycles = end_cycle - start_cycle;
+        sw_cycles = sw_end - sw_start;
     }
 
     snrt_cluster_hw_barrier();
 
+
+    // ###############################
+    // #      OUTPUT COMPARISON      #
+    // ###############################
+
     if (core_idx == 0) {
         printf("MXITA Performance:\r\n");
-        printf(" total: %u cycles\r\n", sw_cycles);
-        printf(" HW:    %u cycles\r\n", hw_cycles);
-        printf(" SW overhead: %u cycles (%.2f\%)\r\n", 
+        printf("  total: %u cycles\r\n", sw_cycles);
+        printf("  HW:    %u cycles\r\n", hw_cycles);
+        printf("  SW oh: %u cycles (%.2f\%)\r\n", 
             sw_cycles - hw_cycles,
             100.f * (sw_cycles - hw_cycles) / sw_cycles
         );
+
+        if (run_concurrent_tcdm) {
+            printf("  DMA:   %u cycles\r\n", dma_cycles);
+            printf("    DMA start: %d cycles, DMA end: %d cycles\r\n", dma_start, dma_end);
+            printf("    SW start: %d cycles, SW end: %d cycles\r\n", sw_start, sw_end);
+
+            int32_t dma_start_before_sw = sw_start - dma_start;
+            int32_t dma_end_after_sw = dma_end - sw_end;
+            int32_t dma_sw_overlap = (dma_start_before_sw > 0 && dma_end_after_sw > 0);
+
+            printf("    DMA before SW:  %d cycles\r\n", dma_start_before_sw);
+            printf("    DMA after SW:   %d cycles\r\n", dma_end_after_sw);
+            printf("    DMA-SW overlap: %s\r\n", dma_sw_overlap ? "Yes" : "No (!)");
+        }
 
         argsStruct->hw_cycles += hw_cycles;
         argsStruct->sw_cycles += sw_cycles;

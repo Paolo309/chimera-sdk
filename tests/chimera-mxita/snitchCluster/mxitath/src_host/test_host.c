@@ -22,8 +22,8 @@
 // #include "interface_api.h"
 
 #define STACK_ADDRESS(idx) (_chimera_clusterBase[(idx)] + 0x20000 - 1)
-// #define STACK_SIZE 0x4000
-#define STACK_SIZE 0x8000
+#define STACK_SIZE 0x4000
+// #define STACK_SIZE 0x8000 // Necessary for the L=512 config
 // #define STACK_SIZE 0xC000
 
 // Cluster syscall communication
@@ -82,6 +82,7 @@ int test_default_fp32_multiple_runs() {
     offloadArgs.hw_cycles = 0;
     offloadArgs.sw_cycles = 0;
     offloadArgs.bf16_sel = 1; // FP32
+    offloadArgs.run_concurrent_tcdm = 0;
     int final_ret = 0;
 
     printf_log("Running default FP32 test for %d runs\r\n", NUM_RUNS);
