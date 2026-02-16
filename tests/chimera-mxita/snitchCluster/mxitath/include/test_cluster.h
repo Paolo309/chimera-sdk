@@ -16,5 +16,9 @@ void clusterInterruptHandler();
 // MXITA tests
 
 int32_t mxita_test_default(void *args);
+int32_t benchmark_frep(void *args);
+int32_t benchmark_freb4d_4(void *args);
+int32_t benchmark_gemm_frep(void *args);
+int32_t test_cluster(void *args);
 
 #endif //_TEST_CLUSTER_INCLUDE_GUARD_

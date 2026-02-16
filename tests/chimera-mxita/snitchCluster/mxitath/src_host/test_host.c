@@ -104,12 +104,41 @@ int test_default_fp32_multiple_runs() {
     return final_ret;
 }
 
+test_entry_t benchmarks[] = {
+    {"frep", benchmark_frep},
+    // {"freb4d_4", benchmark_freb4d_4},
+    // {"gemm_frep", benchmark_gemm_frep},
+};
+
+int run_benchmarks() {
+    int failed = 0;
+    
+    const int NUM_BENCH = sizeof(benchmarks) / sizeof(benchmarks[0]);
+
+    for (int i = 0; i < NUM_BENCH; i++) {
+        printf_log("\r\n---- Running benchmark: %s ----\r\n", benchmarks[i].name);
+        int ret = run_mxita_test(
+            0, /* cluster idx */
+            benchmarks[i].fn
+        );
+        if (ret != 0) {
+            printf_log("Benchmark %s FAILED with return value %d\r\n", benchmarks[i].name, ret);
+            failed += 1;
+        } else {
+            printf_log("Benchmark %s PASSED\r\n", benchmarks[i].name);
+        }
+    }
+
+    return failed;
+}
+
 
 test_entry_t tests[] = {
     // {"TEST APP", test_app},
 
     // {"default | FP32 | C0", test_default_fp32},
     {"default multiple runs | FP32 | C0", test_default_fp32_multiple_runs},
+    // {"Benchmarks | C0", run_benchmarks},
 };
 const int NUM_TESTS = sizeof(tests) / sizeof(tests[0]);
 
