@@ -19,10 +19,12 @@
 #include "math.h"
 
 // Import HAL Headers
-// #include "interface_api.h"
+#include "interface_api.h"
+#include "util.h"
 
 #define STACK_ADDRESS(idx) (_chimera_clusterBase[(idx)] + 0x20000 - 1)
-#define STACK_SIZE 0x4000
+#define STACK_SIZE 0x2000 // For bandwidth test
+// #define STACK_SIZE 0x4000 // For normal mxita tests
 // #define STACK_SIZE 0x8000 // Necessary for the L=512 config
 // #define STACK_SIZE 0xC000
 
@@ -106,7 +108,8 @@ int test_default_fp32_multiple_runs() {
 }
 
 test_entry_t benchmarks[] = {
-    {"frep", benchmark_frep},
+    // {"frep", benchmark_frep},
+    {"DMA BW", benchmark_dma_bw},
     // {"freb4d_4", benchmark_freb4d_4},
     // {"gemm_frep", benchmark_gemm_frep},
 };
@@ -133,13 +136,45 @@ int run_benchmarks() {
     return failed;
 }
 
+test_entry_t kernels[] = {
+    // {"matmul", matmul_test},
+    // {"vexpf", snitch_app_0},
+    // {"transfer_test", benchmark_dma_bw},
+};
+
+int run_kernels() {
+    int failed = 0;
+    
+    uint32_t rtc_freq = *(uint32_t*)reg32(&__base_regs, CHESHIRE_RTC_FREQ_REG_OFFSET);
+    offloadArgs.frequency = clint_get_core_freq(rtc_freq, 512);
+
+    const int NUM_KERNELS = sizeof(kernels) / sizeof(kernels[0]);
+
+    for (int i = 0; i < NUM_KERNELS; i++) {
+        printf_log("\r\n---- Running kernel: %s ----\r\n", kernels[i].name);
+        int ret = run_mxita_test(
+            0, /* cluster idx */
+            kernels[i].fn
+        );
+        if (ret != 0) {
+            printf_log("Kernel %s FAILED with return value %d\r\n", kernels[i].name, ret);
+            failed += 1;
+        } else {
+            printf_log("Kernel %s PASSED\r\n", kernels[i].name);
+        }
+    }
+
+    return failed;
+}
+
 
 test_entry_t tests[] = {
     // {"TEST APP", test_app},
 
     // {"default | FP32 | C0", test_default_fp32},
-    {"default multiple runs | FP32 | C0", test_default_fp32_multiple_runs},
-    // {"Benchmarks | C0", run_benchmarks},
+    // {"default multiple runs | FP32 | C0", test_default_fp32_multiple_runs},
+    {"Benchmarks | C0", run_benchmarks},
+    // {"Kernels | C0", run_kernels},
 };
 const int NUM_TESTS = sizeof(tests) / sizeof(tests[0]);
 

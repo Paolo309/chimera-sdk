@@ -18,6 +18,7 @@ typedef struct {
     uint32_t run_concurrent_tcdm;
     uint32_t hw_cycles;
     uint32_t sw_cycles;
+    float frequency;
 } offloadArgs_t;
 
 typedef struct {
