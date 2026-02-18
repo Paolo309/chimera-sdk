@@ -23,9 +23,9 @@
 #include "util.h"
 
 #define STACK_ADDRESS(idx) (_chimera_clusterBase[(idx)] + 0x20000 - 1)
-#define STACK_SIZE 0x2000 // For bandwidth test
+#define STACK_SIZE 0x4000 // For bandwidth test
 // #define STACK_SIZE 0x4000 // For normal mxita tests
-// #define STACK_SIZE 0x8000 // Necessary for the L=512 config
+// #define STACK_SIZE 0x8000 // Necessary for the MXITA L=512 config and GEMM K=128 config
 // #define STACK_SIZE 0xC000
 
 // Cluster syscall communication
@@ -140,6 +140,7 @@ test_entry_t kernels[] = {
     // {"matmul", matmul_test},
     // {"vexpf", snitch_app_0},
     // {"transfer_test", benchmark_dma_bw},
+    {"gemm", kernel_gemm},
 };
 
 int run_kernels() {
@@ -173,8 +174,8 @@ test_entry_t tests[] = {
 
     // {"default | FP32 | C0", test_default_fp32},
     // {"default multiple runs | FP32 | C0", test_default_fp32_multiple_runs},
-    {"Benchmarks | C0", run_benchmarks},
-    // {"Kernels | C0", run_kernels},
+    // {"Benchmarks | C0", run_benchmarks},
+    {"Kernels | C0", run_kernels},
 };
 const int NUM_TESTS = sizeof(tests) / sizeof(tests[0]);
 

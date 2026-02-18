@@ -21,5 +21,6 @@ int32_t benchmark_freb4d_4(void *args);
 int32_t benchmark_gemm_frep(void *args);
 int32_t test_cluster(void *args);
 int32_t benchmark_dma_bw(void *args);
+int32_t kernel_gemm(void *args);
 
 #endif //_TEST_CLUSTER_INCLUDE_GUARD_

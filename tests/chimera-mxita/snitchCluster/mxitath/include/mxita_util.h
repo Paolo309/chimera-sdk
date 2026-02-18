@@ -22,9 +22,6 @@
 #define HWPE_WRITE(value, offset) *(volatile uint32_t *)(HWPE_ADDR_BASE + offset) = value
 #define HWPE_READ(offset) *(volatile uint32_t *)(HWPE_ADDR_BASE + offset)
 
-// tolerance for output comparison
-#define RELATIVE_TOLERANCE 1e-2
-
 #define _CLEAR_MSIP() \
     asm volatile( \
         "csrr t0, mhartid\n" /* Load mhartid CSR into t0 */ \

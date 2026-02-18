@@ -27,7 +27,8 @@
 #define TRACE
 // #define TRACE_ALLOC
 
-#define NUM_CONTEXTS 1
+
+static const float RELATIVE_TOLERANCE = 1e-2;
 
 SNRT_CLUSTER_L1_ZERO(static int mxita_test_failed);
 
@@ -418,6 +419,13 @@ int32_t mxita_test_default(void *args) {
     // ###############################
 
     if (core_idx == 0) {
+        uint32_t FLOPs = 2 * M * N * P * Q * l_size;
+        uint32_t MACs = FLOPs / 2;
+        float flops_cycle = (float)FLOPs / sw_cycles;
+        float macs_cycle = (float)MACs / sw_cycles;
+        float flops_second = flops_cycle * argsStruct->frequency;
+        float macs_second = macs_cycle * argsStruct->frequency;
+
         printf("MXITA Performance:\r\n");
         printf("  total: %u cycles\r\n", sw_cycles);
         printf("  HW:    %u cycles\r\n", hw_cycles);
@@ -425,6 +433,10 @@ int32_t mxita_test_default(void *args) {
             sw_cycles - hw_cycles,
             100.f * (sw_cycles - hw_cycles) / sw_cycles
         );
+        printf("  Total FLOPs: %u\r\n", FLOPs);
+        printf("  Total MACs:  %u\r\n", MACs);
+        printf("  Performance: %.2f FLOPs/cycle, %.2f MACs/cycle\r\n", flops_cycle, macs_cycle);
+        printf("  Performance: %.2f GFLOPs/s, %.2f GMACs/s\r\n", flops_second / 1e9, macs_second / 1e9);
 
         if (run_concurrent_tcdm) {
             printf("  DMA:   %u cycles\r\n", dma_cycles);
@@ -461,8 +473,8 @@ int32_t mxita_test_default(void *args) {
             float dut = bf16_sel ? uint32_to_float((uint32_t)out_bf16[i] << 16) : out_float[i];
             float ref = bf16_sel ? output_matrix[i ^ 1] : output_matrix[i];
             float err = dut - ref;
-            float abs_err = fabs(err);
-            float max_err = RELATIVE_TOLERANCE * fabs(ref);
+            float abs_err = fabsf(err);
+            float max_err = RELATIVE_TOLERANCE * fabsf(ref);
             if (abs_err > max_err) {
                 errors += 1;
                 printf("DUT OUT VS REF OUT [%d]: %f vs %f\r\n", i, dut, ref);
