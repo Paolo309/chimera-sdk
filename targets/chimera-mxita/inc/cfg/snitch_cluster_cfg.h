@@ -7,8 +7,9 @@
 #define SNRT_CLUSTER_CORE_NUM CFG_CLUSTER_NR_CORES
 #define SNRT_CLUSTER_NUM 2
 #define SNRT_CLUSTER_DM_CORE_NUM 1
+#define SNRT_TCDM_START_ADDR CLUSTER_TCDM_BASE_ADDR
 // #define SNRT_TCDM_SIZE (CLUSTER_BOOTROM_BASE_ADDR - CLUSTER_TCDM_BASE_ADDR)
-#define SNRT_TCDM_SIZE 0x18000 // XXX 96 KiB, but address space is 128 KiB
+#define SNRT_TCDM_SIZE 0x18000 // 96 KiB for current configuration, but address space is 128 KiB
 #define SNRT_CLUSTER_OFFSET 0x200000
 
 // Software configuration
