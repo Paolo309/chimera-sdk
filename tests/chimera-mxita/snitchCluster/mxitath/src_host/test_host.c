@@ -22,11 +22,16 @@
 #include "interface_api.h"
 #include "util.h"
 
-#define STACK_ADDRESS(idx) (_chimera_clusterBase[(idx)] + 0x20000 - 1)
-#define STACK_SIZE 0x4000 // For bandwidth test
+// #define STACK_ADDRESS(idx) (_chimera_clusterBase[(idx)] + 0x20000 - 1)
+#define STACK_ADDRESS(idx) (_chimera_clusterBase[(idx)] + 0x18000 - 1)
+// #define STACK_ADDRESS(idx) (0x48050000 - 1)
+
+// #define STACK_SIZE 0x4000 // For bandwidth test
 // #define STACK_SIZE 0x4000 // For normal mxita tests
 // #define STACK_SIZE 0x8000 // Necessary for the MXITA L=512 config and GEMM K=128 config
 // #define STACK_SIZE 0xC000
+// #define STACK_SIZE 0x400
+#define STACK_SIZE 0x400
 
 // Cluster syscall communication
 extern uintptr_t volatile tohost, fromhost;
@@ -79,12 +84,42 @@ int test_default_fp32() {
     );
 }
 
+// la t0, __chim_regs // CHIMERA REGS Base Addr
+// lw t0, CHIMERA_SNITCH_INTR_HANDLER_ADDR_REG_OFFSET(t0)
+// jalr t0
+// mret
+// __attribute__((naked))
+// void _my_trap_vector() {
+//     asm volatile(
+//         "li t0, 0x30001000\n"
+//         "lw t0, 0x08(t0)\n"
+//         "jalr t0\n"
+//         "mret\n"
+//         ::: "t0"
+//     );
+// }
+
+__attribute__((naked))
+void _host_trap_vector() {
+    asm volatile(
+        "li t0, 0x30001000\n"
+        "lw t0, 0x08(t0)\n"
+        "jalr t0\n"
+        "mret\n"
+        ::: "t0"
+    );
+}
+
 int test_default_fp32_multiple_runs() {
     const uint32_t NUM_RUNS = 1;
     offloadArgs.hw_cycles = 0;
     offloadArgs.sw_cycles = 0;
-    offloadArgs.bf16_sel = 1; // FP32
+    offloadArgs.bf16_sel = 1;
     offloadArgs.run_concurrent_tcdm = 0;
+
+    uint32_t rtc_freq = *(uint32_t*)reg32(&__base_regs, CHESHIRE_RTC_FREQ_REG_OFFSET);
+    offloadArgs.frequency = clint_get_core_freq(rtc_freq, 512);
+
     int final_ret = 0;
 
     printf_log("Running default FP32 test for %d runs\r\n", NUM_RUNS);
@@ -94,6 +129,11 @@ int test_default_fp32_multiple_runs() {
             0, /* cluster idx */
             mxita_test_default
         );
+        // asm volatile(
+        // "la t0, _host_trap_vector\n"
+        //     "csrw mtvec, t0\n"
+        //     ::: "t0", "memory"
+        // );
     }
 
     uint32_t avg_hw_cycles = (offloadArgs.hw_cycles * 1000U) / NUM_RUNS;
@@ -118,6 +158,9 @@ int run_benchmarks() {
     int failed = 0;
     
     const int NUM_BENCH = sizeof(benchmarks) / sizeof(benchmarks[0]);
+
+    uint32_t rtc_freq = *(uint32_t*)reg32(&__base_regs, CHESHIRE_RTC_FREQ_REG_OFFSET);
+    offloadArgs.frequency = clint_get_core_freq(rtc_freq, 512);
 
     for (int i = 0; i < NUM_BENCH; i++) {
         printf_log("\r\n---- Running benchmark: %s ----\r\n", benchmarks[i].name);
@@ -172,10 +215,10 @@ int run_kernels() {
 test_entry_t tests[] = {
     // {"TEST APP", test_app},
 
-    // {"default | FP32 | C0", test_default_fp32},
-    // {"default multiple runs | FP32 | C0", test_default_fp32_multiple_runs},
+    // {"default | FP32 | C0", test_default_fp32}, // XXX old do not run
+    {"default multiple runs | FP32 | C0", test_default_fp32_multiple_runs},
     // {"Benchmarks | C0", run_benchmarks},
-    {"Kernels | C0", run_kernels},
+    // {"Kernels | C0", run_kernels},
 };
 const int NUM_TESTS = sizeof(tests) / sizeof(tests[0]);
 

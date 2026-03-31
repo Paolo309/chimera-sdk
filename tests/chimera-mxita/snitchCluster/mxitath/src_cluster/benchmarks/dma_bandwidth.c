@@ -109,7 +109,7 @@ int32_t benchmark_dma_bw(void *args) {
         // local_buffer_2_hb0 = snrt_l1_alloc(L2_BUFFER_SIZE);
         // second hyperbank
         // local_buffer_3_hb1 = snrt_l1_alloc(L2_BUFFER_SIZE) + SNRT_TCDM_SIZE / 2;
-        local_buffer_3_hb1 = (void*)(tcdm_base + SNRT_TCDM_SIZE / 2);
+        local_buffer_3_hb1 = (void*)(tcdm_base + L2_BUFFER_SIZE + SNRT_TCDM_SIZE / 2);
 
         printf("l2_buffer            @ %p -> %p\r\n", &l2_buffer, l2_buffer);
         printf("local_buffer_1_hb0   @ %p -> %p\r\n", &local_buffer_1_hb0, local_buffer_1_hb0);
@@ -123,7 +123,8 @@ int32_t benchmark_dma_bw(void *args) {
         
         printf("---------------------------------------\r\n");
         printf("Test: TCDM to TCDM\r\n");
-        measure_bandwidth(local_buffer_3_hb1, local_buffer_1_hb0, sizeof(l2_buffer), &results[1], argsStruct->frequency);
+        // measure_bandwidth(local_buffer_3_hb1, local_buffer_1_hb0, sizeof(l2_buffer), &results[1], argsStruct->frequency);
+        measure_bandwidth(local_buffer_1_hb0, local_buffer_3_hb1, sizeof(l2_buffer), &results[1], argsStruct->frequency);
         print_test_result(&results[1]);
         
     }

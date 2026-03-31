@@ -7,8 +7,10 @@
 
 static uint8_t test_sink[1024];
 
-#if   (MXITA_L ==  64) && (MXITA_K == 32)
-  #include "mxita-data/data_L64_k32.h"
+#if   (MXITA_L ==  64) && (MXITA_K ==  8)
+  #include "mxita-data/data_L64_k8.h"
+#elif (MXITA_L == 64) && (MXITA_K == 32)
+    #include "mxita-data/data_L64_k32.h"
 
 #elif (MXITA_L == 128) && (MXITA_K ==  8)
   #include "mxita-data/data_L128_k8.h"
@@ -19,11 +21,15 @@ static uint8_t test_sink[1024];
 #elif (MXITA_L == 128) && (MXITA_K == 64)
   #include "mxita-data/data_L128_k64.h"
 
+#elif (MXITA_L == 256) && (MXITA_K ==  8)
+  #include "mxita-data/data_L256_k8.h"
 #elif (MXITA_L == 256) && (MXITA_K == 32)
   #include "mxita-data/data_L256_k32.h"
 #elif (MXITA_L == 256) && (MXITA_K == 64)
   #include "mxita-data/data_L256_k64.h"
 
+#elif (MXITA_L == 512) && (MXITA_K == 8)
+  #include "mxita-data/data_L512_k8.h"
 #elif (MXITA_L == 512) && (MXITA_K == 16)
   #include "mxita-data/data_L512_k16.h"
 #elif (MXITA_L == 512) && (MXITA_K == 32)

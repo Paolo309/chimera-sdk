@@ -22,5 +22,8 @@ int32_t benchmark_gemm_frep(void *args);
 int32_t test_cluster(void *args);
 int32_t benchmark_dma_bw(void *args);
 int32_t kernel_gemm(void *args);
+int32_t kernel_mxita_gemm(void *args);
+
+int32_t snitch_app_0(void *args);
 
 #endif //_TEST_CLUSTER_INCLUDE_GUARD_

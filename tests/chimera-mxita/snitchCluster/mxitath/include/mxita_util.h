@@ -18,6 +18,9 @@
 #define MXITA_ACQUIRE 0x04
 #define MXITA_SOFT_CLEAR 0x14
 #define MXITA_PERF_COUNTER 0x88
+#define MXITA_PERF_COUNTER_BUSY 0x90
+#define MXITA_PERF_COUNTER_2ND_RUN 0x98
+#define MXITA_PERF_COUNTER_BUSY_2ND_RUN 0xA0
 #define HWPE_MXIP_ADDR (HWPE_ADDR_BASE + 0x58)
 #define HWPE_WRITE(value, offset) *(volatile uint32_t *)(HWPE_ADDR_BASE + offset) = value
 #define HWPE_READ(offset) *(volatile uint32_t *)(HWPE_ADDR_BASE + offset)
@@ -138,6 +141,66 @@ static inline void hwpe_set_perfcnt(int reps) {
  */
 static inline int hwpe_get_perfcnt() {
     return HWPE_READ(MXITA_PERF_COUNTER);
+}
+
+/**
+ * @brief Enable the performance counter for MXITA HWPE.
+ * If it was already enabled, this has no effect unless the new
+ * value is zero. In that case, the counter is stopped and reset.
+ *
+ * @param reps Number of repetitions to set in the performance counter.
+ */
+static inline void hwpe_set_perfcnt_busy(int reps) {
+    HWPE_WRITE(reps, MXITA_PERF_COUNTER_BUSY);
+}
+
+/** 
+ * @brief Get the current value of the MXITA HWPE performance counter.
+ *
+ * @return int Current value of the performance counter.
+ */
+static inline int hwpe_get_perfcnt_busy() {
+    return HWPE_READ(MXITA_PERF_COUNTER_BUSY);
+}
+
+/**
+ * @brief Enable the performance counter for MXITA HWPE.
+ * If it was already enabled, this has no effect unless the new
+ * value is zero. In that case, the counter is stopped and reset.
+ *
+ * @param reps Number of repetitions to set in the performance counter.
+ */
+static inline void hwpe_set_perfcnt_2nd_run(int reps) {
+    HWPE_WRITE(reps, MXITA_PERF_COUNTER_2ND_RUN);
+}
+
+/** 
+ * @brief Get the current value of the MXITA HWPE performance counter.
+ *
+ * @return int Current value of the performance counter.
+ */
+static inline int hwpe_get_perfcnt_2nd_run() {
+    return HWPE_READ(MXITA_PERF_COUNTER_2ND_RUN);
+}
+
+/**
+ * @brief Enable the performance counter for MXITA HWPE.
+ * If it was already enabled, this has no effect unless the new
+ * value is zero. In that case, the counter is stopped and reset.
+ *
+ * @param reps Number of repetitions to set in the performance counter.
+ */
+static inline void hwpe_set_perfcnt_busy_2nd_run(int reps) {
+    HWPE_WRITE(reps, MXITA_PERF_COUNTER_BUSY_2ND_RUN);
+}
+
+/** 
+ * @brief Get the current value of the MXITA HWPE performance counter.
+ *
+ * @return int Current value of the performance counter.
+ */
+static inline int hwpe_get_perfcnt_busy_2nd_run() {
+    return HWPE_READ(MXITA_PERF_COUNTER_BUSY_2ND_RUN);
 }
 
 /**
