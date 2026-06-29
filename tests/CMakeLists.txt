@@ -27,7 +27,8 @@ chimera-open:
   snitchCluster/matmul,
   snitchCluster/snrt,
   snitchCluster/simpleOffload,
-  snitchCluster/hyperbus
+  snitchCluster/hyperbus,
+  ComputeRAM/OpS,
 ]]
 [[
 chimera-host:
