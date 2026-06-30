@@ -114,6 +114,10 @@ extern "C" {
 #define CHIMERA_CLUSTER_4_BUSY_REG_OFFSET 0x6c
 #define CHIMERA_CLUSTER_4_BUSY_CLUSTER_4_BUSY_BIT 0
 
+// Registers to set the multicast mask for the CxRs
+#define CHIMERA_CXR_MULTICAST_MASK_LO_REG_OFFSET 0x70
+#define CHIMERA_CXR_MULTICAST_MASK_HI_REG_OFFSET 0x74
+
 #ifdef __cplusplus
 } // extern "C"
 #endif
