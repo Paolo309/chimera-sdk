@@ -1,13 +1,13 @@
 # SPDX-FileCopyrightText: 2024 ETH Zurich and University of Bologna
 # SPDX-License-Identifier: Apache-2.0
 
-set(TEST_NAME test_ComputeRAM_OpS)
+set(TEST_NAME test_ComputeRAM_matmul)
 
 ######## Source files ###########################################################
 file(GLOB_RECURSE TEST_HOST_SRCS "src_host/*.c")
 
 # Optional prebuilt host object(s) compiled externally, separated by ';'.
-set(TEST_EXTERNAL_HOST_OBJS "${CMAKE_SOURCE_DIR}/tests/ComputeRAM/OpS/src_host/patch_embed_matmul.o" CACHE STRING
+set(TEST_EXTERNAL_HOST_OBJS "${CMAKE_SOURCE_DIR}/tests/ComputeRAM/matmul/src_host/patch_embed_matmul.o" CACHE STRING
     "Semicolon-separated list of external prebuilt .o files to link into ${TEST_NAME}_host.elf")
 
 if(TEST_EXTERNAL_HOST_OBJS)
