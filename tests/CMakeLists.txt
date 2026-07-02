@@ -30,6 +30,7 @@ chimera-open:
   snitchCluster/hyperbus,
   ComputeRAM/datamov,
   ComputeRAM/matmul,
+  ComputeRAM/idma,
 ]]
 [[
 chimera-host:
