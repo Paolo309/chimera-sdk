@@ -20,7 +20,13 @@
 #include "clint.h"
 #include "uart.h"
 
+#include "dif/dma.h"
 #include "patch_embed_matmul.h"
+
+// Force external symbol emission for linkage with LLVM-IR-generated code.
+extern inline void sys_dma_2d_blk_memcpy(uint64_t dst, uint64_t src,
+    uint64_t size, uint64_t dst_stride, uint64_t src_stride,
+    uint64_t num_reps, uint64_t conf);
 
 // volatile uint64_t * CXR_BASE_ADDR = (volatile uint64_t *)0x40A00000;
 

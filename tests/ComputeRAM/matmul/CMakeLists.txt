@@ -34,6 +34,7 @@ add_host_binary(${TEST_NAME}
     DEVICE_DIR   ${CHIMERA_TARGET_DIR}/host
     SOURCES      ${TEST_HOST_SRCS}
 )
+target_include_directories(${TEST_NAME}_host.elf PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_compile_options(${TEST_NAME}_host.elf PRIVATE -O2 -ffunction-sections -fdata-sections)
 target_link_options(${TEST_NAME}_host.elf PRIVATE -Wl,--gc-sections)
 
