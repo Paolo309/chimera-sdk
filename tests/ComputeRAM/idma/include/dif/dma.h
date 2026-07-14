@@ -87,7 +87,6 @@
         *(NAME##_dma_src_stride_ptr()) = src_stride; \
         *(NAME##_dma_dst_stride_ptr()) = dst_stride; \
         *(NAME##_dma_num_reps_ptr()) = num_reps; \
-        asm volatile("fence" ::: "memory"); \
         return *(NAME##_dma_nextid_ptr()); \
     } \
 \
