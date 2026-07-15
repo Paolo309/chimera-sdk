@@ -118,6 +118,24 @@ extern "C" {
 #define CHIMERA_CXR_MULTICAST_MASK_LO_REG_OFFSET 0x70
 #define CHIMERA_CXR_MULTICAST_MASK_HI_REG_OFFSET 0x74
 
+// ComputeRAM CxR generic configuration register
+#define CHIMERA_CXR_CONFIG_REG_OFFSET 0x78
+#define CHIMERA_CXR_CONFIG_INTERLEAVED_EN_BIT 0
+#define CHIMERA_CXR_CONFIG_ROB_EN_BIT 1
+
+// ComputeRAM CxR performance monitor trigger
+#define CHIMERA_CXR_PERF_CTRL_REG_OFFSET 0x7c
+#define CHIMERA_CXR_PERF_CTRL_CXR_PERF_CTRL_BIT 0
+
+// ComputeRAM CxR transfer duration from AR to last R 
+#define CHIMERA_CXR_PERF_DUR_AR_REG_OFFSET 0x80
+
+// ComputeRAM CxR transfer duration from first R to last R 
+#define CHIMERA_CXR_PERF_DUR_R_REG_OFFSET 0x84
+
+// ComputeRAM CxR number of R beats
+#define CHIMERA_CXR_PERF_BEATS_REG_OFFSET 0x88
+
 #ifdef __cplusplus
 } // extern "C"
 #endif

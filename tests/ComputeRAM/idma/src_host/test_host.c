@@ -30,6 +30,22 @@ volatile uint32_t * cxr_mcast_mask_hi = (volatile uint32_t *)(SOC_CTRL_BASE + CH
 
 volatile uint32_t* cxr_config = (volatile uint32_t *)(SOC_CTRL_BASE + CHIMERA_CXR_CONFIG_REG_OFFSET);
 
+// CxR DMA performance monitor registers
+volatile uint32_t* cxr_perf_ctrl    = (volatile uint32_t *)(SOC_CTRL_BASE + CHIMERA_CXR_PERF_CTRL_REG_OFFSET);
+volatile uint32_t* cxr_perf_dur_ar  = (volatile uint32_t *)(SOC_CTRL_BASE + CHIMERA_CXR_PERF_DUR_AR_REG_OFFSET);
+volatile uint32_t* cxr_perf_dur_r   = (volatile uint32_t *)(SOC_CTRL_BASE + CHIMERA_CXR_PERF_DUR_R_REG_OFFSET);
+volatile uint32_t* cxr_perf_beats   = (volatile uint32_t *)(SOC_CTRL_BASE + CHIMERA_CXR_PERF_BEATS_REG_OFFSET);
+
+static inline void cxr_perf_arm() {
+    *cxr_perf_ctrl = 1;
+    fence();
+}
+
+static inline void cxr_perf_stop() {
+    *cxr_perf_ctrl = 0;
+    fence();
+}
+
 // uint64_t* get_cxr_base(int cxr_index) {
 //     if (cxr_index < 0 || cxr_index >= NUM_CXR) {
 //         printf("Error: CxR index %d is out of bounds (0-%d)\n", cxr_index, NUM_CXR - 1);
@@ -580,7 +596,7 @@ int test_transfer_interleaved_2D(uint32_t *dst, uint32_t *src, size_t size) {
     uint64_t conf = DMA_CONF_DECOUPLE_ALL
                   | (1u << IDMA_REG64_2D_CONF_SRC_REDUCE_LEN_BIT)
                   | ((uint64_t)max_llen << IDMA_REG64_2D_CONF_SRC_MAX_LLEN_OFFSET);
-    volatile uint64_t start_cycle = get_mcycle();
+    cxr_perf_arm();
     sys_dma_blk_memcpy(
         (uintptr_t)dst64,
         (uintptr_t)src64,
@@ -588,7 +604,10 @@ int test_transfer_interleaved_2D(uint32_t *dst, uint32_t *src, size_t size) {
         conf
     );
     fence();
-    volatile uint64_t end_cycle = get_mcycle();
+    cxr_perf_stop();
+    uint32_t perf_dur_ar = *cxr_perf_dur_ar;
+    uint32_t perf_dur_r  = *cxr_perf_dur_r;
+    uint32_t perf_beats  = *cxr_perf_beats;
     // ---------------------------------------
 
     // for (int i = 0; i < 1024; i++) {
@@ -608,12 +627,16 @@ int test_transfer_interleaved_2D(uint32_t *dst, uint32_t *src, size_t size) {
         }
     }
 
-    uint64_t transferred_bytes = num_elems * sizeof(uint64_t);
-    uint64_t cycles_taken = end_cycle - start_cycle;
-    
-    uint64_t throughput_int = transferred_bytes / cycles_taken;
-    uint64_t throughput_dec = (transferred_bytes % cycles_taken) * 1000 / cycles_taken;
-    printf("2D DMA transfer took %llu cycles for %llu bytes, throughput: %llu.%03llu bytes/cycle\n", cycles_taken, transferred_bytes, throughput_int, throughput_dec);
+    uint32_t transferred_bytes = num_elems * sizeof(uint64_t);
+
+    printf("HW perf monitor: dur_ar=%u cycles, dur_r=%u cycles, beats=%u (fill latency=%u cycles)\n",
+           perf_dur_ar, perf_dur_r, perf_beats, perf_dur_ar - perf_dur_r);
+    if (perf_dur_r != 0) {
+        uint64_t hw_tput_int = transferred_bytes / perf_dur_r;
+        uint64_t hw_tput_dec = (transferred_bytes % perf_dur_r) * 1000 / perf_dur_r;
+        printf("HW perf monitor: steady-state throughput %llu.%03llu bytes/cycle (%u bytes over dur_r)\n",
+               hw_tput_int, hw_tput_dec, (uint32_t)transferred_bytes);
+    }
 
     return errors;
 }
